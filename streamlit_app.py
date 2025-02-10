@@ -77,20 +77,30 @@ ax.set_ylabel("Spending Score")
 ax.set_title("K-Means Clustering")
 st.pyplot(fig)
 
-# Random Forest Classification
-st.header("🌲 Random Forest Classification")
-X_train, X_test, y_train, y_test = train_test_split(df[['income', 'score']], df['Cluster'], test_size=0.3, random_state=42)
-rf = RandomForestClassifier(n_estimators=100, random_state=42)
-rf.fit(X_train, y_train)
-y_pred = rf.predict(X_test)
-
-st.subheader("Classification Report")
-st.text(classification_report(y_test, y_pred))
-
-fig, ax = plt.subplots(figsize=(8, 6))
-sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='Blues', ax=ax)
-ax.set_title("Confusion Matrix")
-st.pyplot(fig)
+elif menu == "Random Forest Classification":
+    st.header("🌲 Random Forest Classification")
+    if 'df' not in st.session_state or 'Cluster' not in st.session_state.df.columns:
+        st.warning("Silakan jalankan K-Means Clustering terlebih dahulu.")
+    else:
+        df = st.session_state.df
+        X_train, X_test, y_train, y_test = train_test_split(st.session_state.X_scaled, df['Cluster'], test_size=0.3, random_state=42)
+        
+        # Membuat dan melatih model Random Forest
+        rf = RandomForestClassifier(n_estimators=100, random_state=42)
+        rf.fit(X_train, y_train)
+        
+        # Melakukan prediksi
+        y_pred = rf.predict(X_test)
+        
+        # Menampilkan Classification Report
+        st.subheader("Classification Report")
+        st.text(classification_report(y_test, y_pred))
+        
+        # Menampilkan Confusion Matrix
+        cm = confusion_matrix(y_test, y_pred)
+        fig = px.imshow(cm, text_auto=True, color_continuous_scale='Blues', title="Confusion Matrix")
+        st.plotly_chart(fig, use_container_width=True)
+        
 # --- DASHBOARD ---
 st.title("📊 Dashboard Segmentasi Pelanggan")
 
