@@ -155,6 +155,16 @@ elif selected_tab == "Dashboard":
             ax.pie(cluster_counts, labels=cluster_counts.index, autopct="%1.1f%%", colors=sns.color_palette("pastel"))
             st.pyplot(fig)
 
+        # Debugging sebelum menampilkan metric
+st.write(f"y_test shape: {len(y_test)}, y_pred shape: {len(y_pred)}")
+
+if len(y_test) == len(y_pred):
+    accuracy = accuracy_score(y_test, y_pred)
+    col5.metric("Akurasi Random Forest", f"{accuracy*100:.2f}%")
+else:
+    st.error("Error: Panjang y_test dan y_pred tidak sama. Cek kembali proses prediksi.")
+
+
         # --- METRIK PENTING ---
         col3, col4, col5, col6 = st.columns(4)
 
