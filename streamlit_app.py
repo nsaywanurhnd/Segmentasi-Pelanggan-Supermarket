@@ -22,7 +22,7 @@ if 'selected_tab' not in st.session_state:
 
 # Buttons for navigation
 st.markdown("## 📌 Navigasi")
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 if col1.button("Upload Data"):
     st.session_state.selected_tab = "Upload Data"
 elif col2.button("Visualisasi Data"):
@@ -31,7 +31,9 @@ elif col3.button("K-Means Clustering"):
     st.session_state.selected_tab = "K-Means Clustering"
 elif col4.button("Random Forest Classification"):
     st.session_state.selected_tab = "Random Forest Classification"
-elif col5.button("Input Manual Data"):
+elif col5.button("Perbandingan Metode"):
+    st.session_state.selected_tab = "Perbandingan Metode"
+elif col6.button("Input Manual Data"):
     st.session_state.selected_tab = "Input Manual Data"
 
 selected_tab = st.session_state.selected_tab
@@ -112,13 +114,25 @@ elif selected_tab == "K-Means Clustering":
             ax.set_title("K-Means Clustering")
             st.pyplot(fig)
             
-            st.subheader("Deskripsi Tiap Cluster")
-            for i in range(n_clusters):
-                cluster_data = df[df['Cluster'] == i]
-                st.write(f"**Cluster {i}:**")
-                st.write(f"- Rata-rata Income: ${cluster_data['income'].mean():,.2f}")
-                st.write(f"- Rata-rata Spending Score: {cluster_data['score'].mean():.2f}")
-                st.write(f"- Jumlah Anggota: {len(cluster_data)} orang")
+# Random Forest Classification
+elif selected_tab == "Random Forest Classification":
+    st.header("🌲 Random Forest Classification")
+    if 'df' not in st.session_state or 'Cluster' not in st.session_state.df.columns:
+        st.warning("Silakan jalankan K-Means Clustering terlebih dahulu.")
+    else:
+        df = st.session_state.df
+        X_train, X_test, y_train, y_test = train_test_split(df[['income', 'score']], df['Cluster'], test_size=0.3, random_state=42)
+        rf = RandomForestClassifier(n_estimators=100, random_state=42)
+        rf.fit(X_train, y_train)
+        y_pred = rf.predict(X_test)
+        
+        st.subheader("Classification Report")
+        st.text(classification_report(y_test, y_pred))
+        
+        fig, ax = plt.subplots(figsize=(8, 6))
+        sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='Blues', ax=ax)
+        ax.set_title("Confusion Matrix")
+        st.pyplot(fig)
 
 # Perbandingan K-Means dan Random Forest
 elif selected_tab == "Perbandingan Metode":
