@@ -13,15 +13,12 @@ from sklearn.metrics import classification_report, confusion_matrix
 st.set_page_config(page_title="Segmentasi Pelanggan Toserba", page_icon="📊", layout="wide")
 st.title("📊 Segmentasi Pelanggan Toserba")
 
-# Sidebar menu with box design
-with st.sidebar:
-    st.markdown("## 📌 Navigasi")
-    menu = st.radio("Pilih Halaman:", ["Upload Data", "Visualisasi Data", "K-Means Clustering", "Random Forest Classification", "Perbandingan Metode", "Input Manual Data"],
-                    index=0, format_func=lambda x: f"📌 {x}",
-                    help="Gunakan navigasi ini untuk berpindah antar halaman.")
+# Tabs for navigation
+tabs = ["Upload Data", "Visualisasi Data", "K-Means Clustering", "Random Forest Classification", "Input Manual Data"]
+selected_tab = st.selectbox("Pilih Halaman:", tabs)
 
 # Upload Data Section
-if menu == "Upload Data":
+if selected_tab == "Upload Data":
     st.header("📂 Upload Data")
     uploaded_file = st.file_uploader("Upload CSV file", type=['csv'])
     
@@ -50,7 +47,7 @@ if menu == "Upload Data":
     st.session_state.X_scaled = X_scaled
 
 # Visualisasi Data Section
-elif menu == "Visualisasi Data":
+elif selected_tab == "Visualisasi Data":
     st.header("📊 Visualisasi Data")
     if 'df' not in st.session_state:
         st.warning("Silakan upload data terlebih dahulu.")
@@ -69,7 +66,7 @@ elif menu == "Visualisasi Data":
             st.plotly_chart(fig, use_container_width=True)
 
 # K-Means Clustering Section
-elif menu == "K-Means Clustering":
+elif selected_tab == "K-Means Clustering":
     st.header("📈 K-Means Clustering")
     if 'df' not in st.session_state:
         st.warning("Silakan upload data terlebih dahulu.")
@@ -100,7 +97,7 @@ elif menu == "K-Means Clustering":
         st.plotly_chart(fig, use_container_width=True)
 
 # Random Forest Classification Section
-elif menu == "Random Forest Classification":
+elif selected_tab == "Random Forest Classification":
     st.header("🌲 Random Forest Classification")
     if 'df' not in st.session_state or 'Cluster' not in st.session_state.df.columns:
         st.warning("Silakan jalankan K-Means Clustering terlebih dahulu.")
@@ -119,7 +116,7 @@ elif menu == "Random Forest Classification":
         st.plotly_chart(fig, use_container_width=True)
 
 # Input Manual Data Section
-elif menu == "Input Manual Data":
+elif selected_tab == "Input Manual Data":
     st.header("✍️ Input Data Manual")
     if 'df' in st.session_state and 'Cluster' in st.session_state.df.columns:
         col1, col2 = st.columns(2)
