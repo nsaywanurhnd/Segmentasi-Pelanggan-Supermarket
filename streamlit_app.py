@@ -10,36 +10,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, silhouette_score, accuracy_score
 
-# ---- 🎨 CSS KUSTOM ----
-st.markdown(
-    """
-    <style>
-    .stButton button {
-        background-color: #4CAF50;
-        color: white;
-        border-radius: 5px;
-        padding: 10px 20px;
-        font-size: 16px;
-    }
-    .stButton button:hover {
-        background-color: #45a049;
-    }
-    .stHeader {
-        color: #4CAF50;
-        font-size: 30px;
-    }
-    .stMetric {
-        background-color: #f0f2f6;
-        padding: 10px;
-        border-radius: 10px;
-        text-align: center;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# Set page config
+# ---- 🎨 SET PAGE CONFIG ----
+# HARUS DIPANGGIL SEBAGAI PERINTAH PERTAMA
 st.set_page_config(page_title="Segmentasi Pelanggan Toserba", page_icon="📊", layout="wide")
 
 # Judul Aplikasi
