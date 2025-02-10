@@ -41,6 +41,29 @@ X = df[['income', 'score']]
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
+# --- 1. VISUALISASI SEBELUM PENGOLAHAN ---
+st.title("📊 Dashboard Segmentasi Pelanggan")
+
+st.subheader("🔍 Data Awal")
+st.write("Contoh 10 data pertama sebelum pengolahan:")
+st.dataframe(df.head(10))
+
+col1, col2 = st.columns(2)
+
+# Histogram untuk Distribusi Data
+with col1:
+    st.subheader("📈 Histogram Data")
+    fig, ax = plt.subplots(figsize=(6, 4))
+    X.hist(ax=ax, bins=20, color="skyblue", edgecolor="black")
+    st.pyplot(fig)
+
+# Heatmap Korelasi
+with col2:
+    st.subheader("📊 Korelasi Fitur")
+    fig, ax = plt.subplots(figsize=(6, 4))
+    sns.heatmap(X.corr(), annot=True, cmap="coolwarm", ax=ax)
+    st.pyplot(fig)
+
 # K-Means Clustering
 st.header("📈 K-Means Clustering")
 kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
@@ -67,6 +90,43 @@ st.text(classification_report(y_test, y_pred))
 fig, ax = plt.subplots(figsize=(8, 6))
 sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='Blues', ax=ax)
 ax.set_title("Confusion Matrix")
+st.pyplot(fig)
+# --- DASHBOARD ---
+st.title("📊 Dashboard Segmentasi Pelanggan")
+
+col1, col2 = st.columns((2, 1))
+
+# Grafik Line Chart untuk Tren
+with col1:
+    st.subheader("Tren Kunjungan Pelanggan")
+    fig, ax = plt.subplots(figsize=(10, 4))
+    sns.lineplot(data=df, x=df.index, y="Pendapatan", hue="Cluster", palette="tab10", ax=ax)
+    st.pyplot(fig)
+
+# Pie Chart untuk Proporsi Klaster
+with col2:
+    st.subheader("Distribusi Klaster Pelanggan")
+    fig, ax = plt.subplots()
+    cluster_counts = df["Cluster"].value_counts()
+    ax.pie(cluster_counts, labels=cluster_counts.index, autopct="%1.1f%%", colors=sns.color_palette("pastel"))
+    st.pyplot(fig)
+
+# --- METRIK PENTING ---
+col3, col4, col5, col6 = st.columns(4)
+
+col3.metric("Total Pelanggan", df.shape[0])
+col4.metric("Jumlah Klaster", df["Cluster"].nunique())
+col5.metric("Akurasi Random Forest", f"{accuracy*100:.2f}%")
+col6.metric("Fitur yang Dipakai", ", ".join(features))
+
+# --- TABEL HASIL SEGMENTASI ---
+st.subheader("📋 Hasil Segmentasi Pelanggan")
+st.dataframe(df.head(10))
+
+# --- DISTRIBUSI DATA ---
+st.subheader("📊 Distribusi Data Pelanggan")
+fig, ax = plt.subplots(figsize=(8, 4))
+sns.boxplot(data=df[features], ax=ax)
 st.pyplot(fig)
 
 # Perbandingan K-Means dan Random Forest
