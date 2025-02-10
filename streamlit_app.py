@@ -16,10 +16,11 @@ st.set_page_config(page_title="Segmentasi Pelanggan Toserba", page_icon="📊", 
 st.title("📊 Segmentasi Pelanggan Toserba")
 st.markdown("**Tujuan Website:** Menganalisis dan mengelompokkan pelanggan berdasarkan pola pembelian mereka menggunakan K-Means dan Random Forest.")
 
-# Sidebar untuk navigasi
-selected_tab = st.sidebar.radio(
-    "Pilih Menu",
-    ["Upload Data", "Visualisasi Data", "K-Means Clustering", "Random Forest Classification", "Dashboard"]
+# Navigasi dengan Radio Button
+selected_tab = st.radio(
+    "Pilih Menu:",
+    ["Upload Data", "Visualisasi Data", "K-Means Clustering", "Random Forest Classification", "Dashboard"],
+    horizontal=True  # Menampilkan radio button secara horizontal
 )
 
 # Upload Data
