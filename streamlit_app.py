@@ -16,21 +16,25 @@ st.set_page_config(page_title="Segmentasi Pelanggan Toserba", page_icon="📊", 
 st.title("📊 Segmentasi Pelanggan Toserba")
 st.markdown("**Tujuan Website:** Menganalisis dan mengelompokkan pelanggan berdasarkan pola pembelian mereka menggunakan K-Means dan Random Forest.")
 
+# Menyimpan state navigasi jika belum ada
+if 'selected_tab' not in st.session_state:
+    st.session_state.selected_tab = "Upload Data"
+
 # Buttons for navigation
 st.markdown("## 📌 Navigasi")
 col1, col2, col3, col4, col5 = st.columns(5)
 if col1.button("Upload Data"):
-    selected_tab = "Upload Data"
+    st.session_state.selected_tab = "Upload Data"
 elif col2.button("Visualisasi Data"):
-    selected_tab = "Visualisasi Data"
+    st.session_state.selected_tab = "Visualisasi Data"
 elif col3.button("K-Means Clustering"):
-    selected_tab = "K-Means Clustering"
+    st.session_state.selected_tab = "K-Means Clustering"
 elif col4.button("Random Forest Classification"):
-    selected_tab = "Random Forest Classification"
+    st.session_state.selected_tab = "Random Forest Classification"
 elif col5.button("Input Manual Data"):
-    selected_tab = "Input Manual Data"
-else:
-    selected_tab = "Upload Data"
+    st.session_state.selected_tab = "Input Manual Data"
+
+selected_tab = st.session_state.selected_tab
 
 # Upload Data Section
 if selected_tab == "Upload Data":
