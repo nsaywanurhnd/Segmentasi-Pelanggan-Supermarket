@@ -96,6 +96,9 @@ st.title("📊 Dashboard Segmentasi Pelanggan")
 
 col1, col2 = st.columns((2, 1))
 
+y_pred = model.predict(X_test)  # Prediksi menggunakan model
+accuracy = accuracy_score(y_test, y_pred)  # Hitung akurasi
+
 # Grafik Line Chart untuk Tren
 with col1:
     st.subheader("Tren Kunjungan Pelanggan")
