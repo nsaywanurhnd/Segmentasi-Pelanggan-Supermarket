@@ -100,11 +100,13 @@ col1, col2 = st.columns((2, 1))
 with col1:
     st.subheader("Tren Kunjungan Pelanggan")
     fig, ax = plt.subplots(figsize=(10, 4))
-   df.reset_index(inplace=True)  # Pastikan index berupa kolom
+df.reset_index(inplace=True)  # Pastikan index berupa kolom
+
 if "Pendapatan" in df.columns and "Cluster" in df.columns:
     sns.lineplot(data=df, x=df.index, y=df["Pendapatan"], hue=df["Cluster"].astype(str), palette="tab10", ax=ax)
 else:
     st.warning("Kolom 'Pendapatan' atau 'Cluster' tidak ditemukan di dataset.")
+
 
 
 # Pie Chart untuk Proporsi Klaster
