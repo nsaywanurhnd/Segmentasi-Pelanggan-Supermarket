@@ -15,16 +15,17 @@ st.title("📊 Segmentasi Pelanggan Toserba")
 st.markdown("**Tujuan Website:** Menganalisis dan mengelompokkan pelanggan berdasarkan pola pembelian mereka menggunakan K-Means dan Random Forest.")
 
 # Buttons for navigation
-st.sidebar.markdown("## 📌 Navigasi")
-if st.sidebar.button("Upload Data"):
+st.markdown("## 📌 Navigasi")
+col1, col2, col3, col4, col5 = st.columns(5)
+if col1.button("Upload Data"):
     selected_tab = "Upload Data"
-elif st.sidebar.button("Visualisasi Data"):
+elif col2.button("Visualisasi Data"):
     selected_tab = "Visualisasi Data"
-elif st.sidebar.button("K-Means Clustering"):
+elif col3.button("K-Means Clustering"):
     selected_tab = "K-Means Clustering"
-elif st.sidebar.button("Random Forest Classification"):
+elif col4.button("Random Forest Classification"):
     selected_tab = "Random Forest Classification"
-elif st.sidebar.button("Input Manual Data"):
+elif col5.button("Input Manual Data"):
     selected_tab = "Input Manual Data"
 else:
     selected_tab = "Upload Data"
