@@ -16,26 +16,88 @@ st.set_page_config(page_title="Segmentasi Pelanggan Toserba", page_icon="📊", 
 st.title("📊 Segmentasi Pelanggan Toserba")
 st.markdown("**Tujuan Website:** Menganalisis dan mengelompokkan pelanggan berdasarkan pola pembelian mereka menggunakan K-Means dan Random Forest.")
 
+
+# Load data
+@st.cache_data
+def load_data():
+    return pd.read_csv("data_customer.csv")
+
+df = load_data()
+st.sidebar.header("📂 Upload Data")
+uploaded_file = st.sidebar.file_uploader("Upload CSV", type=['csv'])
+if uploaded_file:
+    df = pd.read_csv(uploaded_file)
+st.sidebar.success("Data berhasil diunggah!")
+
+# Preprocessing
+df.columns = df.columns.str.strip()
+df.rename(columns={'spending_score': 'score', 'Annual Income (k$)': 'income'}, inplace=True)
+X = df[['income', 'score']]
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# K-Means Clustering
+kmeans = KMeans(n_clusters=5, random_state=42, n_init=10)
+df['Cluster'] = kmeans.fit_predict(X_scaled)
+
+# Random Forest Classification
+X_train, X_test, y_train, y_test = train_test_split(X, df['Cluster'], test_size=0.3, random_state=42)
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+rf.fit(X_train, y_train)
+y_pred = rf.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+
+# Metrics
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Total Users", len(df))
+col2.metric("Unique Clusters", len(df['Cluster'].unique()))
+col3.metric("Model Accuracy", f"{accuracy:.2%}")
+col4.metric("Silhouette Score", f"{silhouette_score(X, df['Cluster']):.2f}")
+
+# Line Chart
+st.subheader("📈 Session Trends")
+time_series = np.random.randint(10, 50, size=30)  # Simulated session data
+dates = pd.date_range(start="2023-01-01", periods=30)
+fig = px.line(x=dates, y=time_series, labels={'x': 'Date', 'y': 'Sessions'})
+st.plotly_chart(fig, use_container_width=True)
+
+# Pie Chart - Cluster Distribution
+st.subheader("🔄 Cluster Distribution")
+fig = px.pie(df, names='Cluster', title="Percentage of Customers in Each Cluster")
+st.plotly_chart(fig, use_container_width=True)
+
+# Confusion Matrix
+st.subheader("🎯 Confusion Matrix")
+fig, ax = plt.subplots(figsize=(6, 4))
+sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='Blues', ax=ax)
+st.pyplot(fig)
+
 # Menyimpan state navigasi jika belum ada
+# Set halaman utama
+st.set_page_config(page_title="Segmentasi Pelanggan", page_icon="📊", layout="wide")
+
+# Simpan navigasi di session state
 if 'selected_tab' not in st.session_state:
     st.session_state.selected_tab = "Upload Data"
 
-# Buttons for navigation
+# Tombol Navigasi
 st.markdown("## 📌 Navigasi")
 col1, col2, col3, col4, col5, col6 = st.columns(6)
+
 if col1.button("Upload Data"):
     st.session_state.selected_tab = "Upload Data"
-elif col2.button("Visualisasi Data"):
+if col2.button("Visualisasi Data"):
     st.session_state.selected_tab = "Visualisasi Data"
-elif col3.button("K-Means Clustering"):
+if col3.button("K-Means Clustering"):
     st.session_state.selected_tab = "K-Means Clustering"
-elif col4.button("Random Forest Classification"):
+if col4.button("Random Forest Classification"):
     st.session_state.selected_tab = "Random Forest Classification"
-elif col5.button("Perbandingan Metode"):
+if col5.button("Perbandingan Metode"):
     st.session_state.selected_tab = "Perbandingan Metode"
-elif col6.button("Input Manual Data"):
+if col6.button("Input Manual Data"):
     st.session_state.selected_tab = "Input Manual Data"
 
+# Pastikan navigasi tetap ada di setiap halaman
 selected_tab = st.session_state.selected_tab
 
 # Upload Data Section
