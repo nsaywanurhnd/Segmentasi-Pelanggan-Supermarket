@@ -41,22 +41,53 @@ X = df[['income', 'score']]
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# --- 1. VISUALISASI SEBELUM PENGOLAHAN ---
-st.title("📊 Dashboard Segmentasi Pelanggan")
+import streamlit as st
+import pandas as pd
+import plotly.express as px
 
-st.subheader("🔍 Data Awal")
-st.write("Contoh 10 data pertama sebelum pengolahan:")
-st.dataframe(df.head(10))
+# Judul halaman
+st.title("Analisis Sesi Pengguna")
 
-col1, col2 = st.columns(2)
+# Data untuk visualisasi
+sessions_data = {
+    "Tanggal": ["Jan 1", "Jan 7", "Jan 14", "Jan 21", "Jan 28"],
+    "Sesi": [841, 759, 469, 981, 931]
+}
 
-# Histogram untuk Distribusi Data
-with col1:
-    st.subheader("📈 Histogram Data")
-    fig, ax = plt.subplots(figsize=(6, 4))
-    X.hist(ax=ax, bins=20, color="skyblue", edgecolor="black")
-    st.pyplot(fig)
+engagement_data = {
+    "Metrik": ["Sesi", "Sesi Terlibat", "Rata-rata Waktu Terlibat", "Pengguna Baru", "Total Pengguna"],
+    "Nilai": [841, 759, "00:00:30", 469, 981]
+}
 
+# Visualisasi data sesi
+st.header("Sesi per Tanggal")
+fig_sessions = px.bar(sessions_data, x="Tanggal", y="Sesi", text="Sesi", title="Sesi per Tanggal")
+st.plotly_chart(fig_sessions)
+
+# Visualisasi data sumber sesi
+st.header("Sesi berdasarkan Sumber")
+sources = ["Email", "Referral", "Paid Search", "(Other)", "Direct", "Social", "Display", "Organic Search"]
+source_counts = [120, 90, 150, 80, 200, 70, 60, 180]
+fig_sources = px.pie(names=sources, values=source_counts, title="Sesi berdasarkan Sumber")
+st.plotly_chart(fig_sources)
+
+# Visualisasi data keterlibatan
+st.header("Metrik Keterlibatan")
+df_engagement = pd.DataFrame(engagement_data)
+st.table(df_engagement)
+
+# Interaksi pengguna
+st.header("Interaksi Pengguna")
+selected_date = st.selectbox("Pilih Tanggal", sessions_data["Tanggal"])
+selected_metric = st.selectbox("Pilih Metrik", engagement_data["Metrik"])
+
+# Menampilkan data berdasarkan pilihan pengguna
+if selected_date and selected_metric:
+    st.write(f"Anda memilih tanggal {selected_date} dan metrik {selected_metric}.")
+    # Di sini Anda bisa menambahkan logika untuk menampilkan data yang lebih spesifik berdasarkan pilihan pengguna
+
+# Catatan tambahan
+st.write("Catatan: Data ini adalah contoh dan hanya untuk tujuan ilustrasi.")
 # Heatmap Korelasi
 with col2:
     st.subheader("📊 Korelasi Fitur")
