@@ -10,6 +10,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, silhouette_score, accuracy_score
 
+# ---- 🎨 SET PAGE CONFIG ----
+st.set_page_config(page_title="Segmentasi Pelanggan Toserba", page_icon="📊", layout="wide")
+
 # ---- 🎨 CSS CUSTOM ----
 custom_css = """
 <style>
@@ -29,9 +32,6 @@ custom_css = """
 </style>
 """
 st.markdown(custom_css, unsafe_allow_html=True)
-
-# ---- 🎨 SET PAGE CONFIG ----
-st.set_page_config(page_title="Segmentasi Pelanggan Toserba", page_icon="📊", layout="wide")
 
 st.title("📊 Segmentasi Pelanggan Toserba")
 st.markdown("Menganalisis dan mengelompokkan pelanggan berdasarkan pola pembelian menggunakan **K-Means** dan **Random Forest**.")
