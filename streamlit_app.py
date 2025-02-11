@@ -120,7 +120,6 @@ with tab3:
     fig = px.imshow(cm, text_auto=True, color_continuous_scale='Blues', title="Confusion Matrix")
     st.plotly_chart(fig, use_container_width=True)
 
-
 # ---- Tab 5: Perbandingan Metode ----
 with tab5:
     st.header("📊 Perbandingan Metode K-Means vs Random Forest")
