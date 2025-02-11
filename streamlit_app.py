@@ -182,11 +182,12 @@ st.sidebar.metric("Akurasi Random Forest", f"{accuracy_score(y_test, y_pred) * 1
 
 # ---- Tab 5: Perbandingan Metode ----
 with tab5:
-    st.header("📊 Perbandingan Akurasi Metode")
-    kmeans_silhouette = silhouette_score(X_scaled, kmeans.labels_)
-    rf_accuracy = accuracy_score(y_test, y_pred)
+    st.header("📊 Perbandingan Metode K-Means vs Random Forest")
     
-    st.metric("Silhouette Score K-Means", f"{kmeans_silhouette:.2f}")
-    st.metric("Akurasi Random Forest", f"{rf_accuracy * 100:.2f}%")
+    st.subheader("Silhouette Score untuk K-Means")
+    fig_silhouette = px.line(x=range(3, 12, 2), y=silhouette_scores, markers=True, title="Silhouette Score")
+    fig_silhouette.update_layout(xaxis_title="Jumlah Cluster", yaxis_title="Silhouette Score")
+    st.plotly_chart(fig_silhouette, use_container_width=True)
     
-    st.markdown("Dari hasil di atas, **K-Means** digunakan untuk clustering, sedangkan **Random Forest** memiliki akurasi lebih tinggi untuk klasifikasi data hasil clustering.")
+    st.subheader("Akurasi Random Forest")
+    st.metric("Akurasi", f"{accuracy_score(y_test, y_pred) * 100:.2f}%")
