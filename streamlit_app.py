@@ -85,7 +85,7 @@ scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
 # Tabs sebagai navbar
-tab1, tab2, tab3, tab4 = st.tabs(["📊 Visualisasi Data", "📈 K-Means", "🌲 Random Forest", "📋 Dashboard"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Visualisasi Data", "📈 K-Means", "🌲 Random Forest", "📋 Dashboard", "📊 Perbandingan Metode"])
 
 # ---- Tab 1: Visualisasi Data ----
 with tab1:
@@ -179,15 +179,10 @@ st.sidebar.metric("Jumlah Klaster", df['Cluster'].nunique())
 st.sidebar.metric("Akurasi Random Forest", f"{accuracy_score(y_test, y_pred) * 100:.2f}%")
 
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Visualisasi Data", "📈 K-Means", "🌲 Random Forest", "📋 Dashboard", "📊 Perbandingan Metode"])
-with tab5:
-    st.header("📊 Perbandingan Metode")
-    st.write("Di sini kita bisa membandingkan performa K-Means dan Random Forest.")
-
 # ---- Tab 5: Perbandingan Metode ----
 with tab5:
     st.header("📊 Perbandingan Metode K-Means vs Random Forest")
-    
+    st.write("Di sini kita bisa membandingkan performa K-Means dan Random Forest.")
     st.subheader("Silhouette Score untuk K-Means")
     fig_silhouette = px.line(x=range(3, 12, 2), y=silhouette_scores, markers=True, title="Silhouette Score")
     fig_silhouette.update_layout(xaxis_title="Jumlah Cluster", yaxis_title="Silhouette Score")
