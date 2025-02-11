@@ -124,11 +124,19 @@ with tab3:
 # ---- Tab 5: Perbandingan Metode ----
 with tab5:
     st.header("📊 Perbandingan Metode K-Means vs Random Forest")
-    st.write("Di sini kita bisa membandingkan performa K-Means dan Random Forest.")
+    
     st.subheader("Silhouette Score untuk K-Means")
-    fig_silhouette = px.line(x=range(3, 12, 2), y=silhouette_scores, markers=True, title="Silhouette Score")
-    fig_silhouette.update_layout(xaxis_title="Jumlah Cluster", yaxis_title="Silhouette Score")
-    st.plotly_chart(fig_silhouette, use_container_width=True)
+    silhouette_container = st.container()
+    with silhouette_container:
+        fig_silhouette = px.line(
+            x=range(3, 12, 2), 
+            y=silhouette_scores, 
+            markers=True, 
+            title="Silhouette Score"
+        )
+        fig_silhouette.update_layout(xaxis_title="Jumlah Cluster", yaxis_title="Silhouette Score")
+        st.plotly_chart(fig_silhouette, use_container_width=True)
     
     st.subheader("Akurasi Random Forest")
     st.metric("Akurasi", f"{accuracy_score(y_test, y_pred) * 100:.2f}%")
+
