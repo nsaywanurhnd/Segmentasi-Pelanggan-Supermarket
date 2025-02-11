@@ -187,18 +187,17 @@ st.sidebar.metric("Akurasi Random Forest", f"{accuracy_score(y_test, y_pred) * 1
 with tab5:
     st.header("📊 Perbandingan Metode K-Means vs Random Forest")
     
-    st.subheader("Silhouette Score untuk K-Means")
-    silhouette_container = st.container()
-    with silhouette_container:
-        fig_silhouette = px.line(
-            x=range(3, 12, 2), 
-            y=silhouette_scores, 
-            markers=True, 
-            title="Silhouette Score"
-        )
+    # Silhouette Score K-Means
+    st.subheader("📈 Silhouette Score untuk K-Means")
+    if 'silhouette_scores' in locals():
+        fig_silhouette = px.line(x=range(3, 12, 2), y=silhouette_scores, markers=True, title="Silhouette Score")
         fig_silhouette.update_layout(xaxis_title="Jumlah Cluster", yaxis_title="Silhouette Score")
         st.plotly_chart(fig_silhouette, use_container_width=True)
-    
-    st.subheader("Akurasi Random Forest")
+    else:
+        st.warning("Silhouette Score belum dihitung. Silakan jalankan K-Means terlebih dahulu.")
+
+    # Akurasi Random Forest
+    st.subheader("🌲 Akurasi Random Forest")
     st.metric("Akurasi", f"{accuracy_score(y_test, y_pred) * 100:.2f}%")
+
 
