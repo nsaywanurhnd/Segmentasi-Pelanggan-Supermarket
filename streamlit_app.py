@@ -60,6 +60,13 @@ with tab1:
         fig = px.histogram(df, x="score", title="🎯 Distribusi Spending Score", nbins=10, color_discrete_sequence=["#636EFA"])
         st.plotly_chart(fig, use_container_width=True)
     
+    # Menambahkan pie chart untuk distribusi spending score
+    spending_bins = pd.cut(df['score'], bins=[0, 20, 40, 60, 80, 100], labels=["0-20", "21-40", "41-60", "61-80", "81-100"])
+    spending_counts = spending_bins.value_counts().reset_index()
+    spending_counts.columns = ['Range', 'Count']
+    fig_pie = px.pie(spending_counts, names='Range', values='Count', title="🔵 Distribusi Spending Score")
+    st.plotly_chart(fig_pie, use_container_width=True)
+    
     # Menambahkan metrik utama
     st.subheader("📊 Statistik Utama")
     col3, col4, col5, col6 = st.columns(4)
@@ -112,6 +119,7 @@ with tab3:
     cm = confusion_matrix(y_test, y_pred)
     fig = px.imshow(cm, text_auto=True, color_continuous_scale='Blues', title="Confusion Matrix")
     st.plotly_chart(fig, use_container_width=True)
+
 
 # ---- Tab 5: Perbandingan Metode ----
 with tab5:
