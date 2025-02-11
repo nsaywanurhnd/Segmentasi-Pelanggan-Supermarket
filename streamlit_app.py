@@ -53,12 +53,20 @@ with tab1:
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        fig = px.line(df, x=df.index, y='income', title="📈 Tren Income Pelanggan")
+        fig = px.line(df, x=df.index, y='income', title="📈 Tren Income Pelanggan", markers=True)
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        fig = px.pie(df, names="score", title="🎯 Distribusi Spending Score", hole=0.4)
+        fig = px.pie(df, names="score", title="🎯 Distribusi Spending Score", hole=0.3, color_discrete_sequence=px.colors.qualitative.Set3)
         st.plotly_chart(fig, use_container_width=True)
+    
+    # Menambahkan metrik utama
+    st.subheader("📊 Statistik Utama")
+    col3, col4, col5, col6 = st.columns(4)
+    col3.metric("Total Users", len(df))
+    col4.metric("Rata-rata Income", f"${df['income'].mean():.2f}K")
+    col5.metric("Rata-rata Score", f"{df['score'].mean():.2f}")
+    col6.metric("Max Score", df['score'].max())
 
 # ---- Tab 2: K-Means Clustering ----
 with tab2:
