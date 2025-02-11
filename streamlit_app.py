@@ -179,6 +179,10 @@ st.sidebar.metric("Jumlah Klaster", df['Cluster'].nunique())
 st.sidebar.metric("Akurasi Random Forest", f"{accuracy_score(y_test, y_pred) * 100:.2f}%")
 
 
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Visualisasi Data", "📈 K-Means", "🌲 Random Forest", "📋 Dashboard", "📊 Perbandingan Metode"])
+with tab5:
+    st.header("📊 Perbandingan Metode")
+    st.write("Di sini kita bisa membandingkan performa K-Means dan Random Forest.")
 
 # ---- Tab 5: Perbandingan Metode ----
 with tab5:
