@@ -57,7 +57,7 @@ with tab1:
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        fig = px.pie(df, names="score", title="🎯 Distribusi Spending Score", hole=0.3, color_discrete_sequence=px.colors.qualitative.Set3)
+        fig = px.histogram(df, x="score", title="🎯 Distribusi Spending Score", nbins=10, color_discrete_sequence=["#636EFA"])
         st.plotly_chart(fig, use_container_width=True)
     
     # Menambahkan metrik utama
