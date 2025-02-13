@@ -9,8 +9,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, silhouette_score, accuracy_score
-import base64
-from io import BytesIO
 
 # Set page config
 st.set_page_config(page_title="Segmentasi Pelanggan Toserba", page_icon="📊", layout="wide")
@@ -95,11 +93,11 @@ with tab1:
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        fig = px.line(df, x=df.index, y='income', title="📈 Tren Income Pelanggan")
+        fig = px.histogram(df, x='income', title="📊 Distribusi Income Pelanggan", nbins=20)
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        fig = px.pie(df, names="score", title="🎯 Distribusi Spending Score", hole=0.4)
+        fig = px.histogram(df, x='score', title="📊 Distribusi Spending Score", nbins=20)
         st.plotly_chart(fig, use_container_width=True)
 
 # ---- Tab 2: K-Means Clustering ----
@@ -131,13 +129,40 @@ with tab2:
 # ---- Tab 3: Random Forest ----
 with tab3:
     st.header("🌲 Random Forest Classification")
-    st.markdown("### 🎯 Hasil Klasifikasi Pelanggan dengan Random Forest")
     st.markdown("""
-    **Random Forest** adalah metode klasifikasi yang menggunakan ensemble dari pohon keputusan. 
-    Metrik yang digunakan untuk evaluasi adalah **akurasi**, **precision**, **recall**, dan **f1-score**.
-    """)
+        <h3 style='color: #007bff; font-size: 24px;'>
+            📝 Deskripsi Model
+        </h3>
+        <p>
+            Random Forest adalah metode klasifikasi yang menggunakan ensemble dari banyak pohon keputusan. 
+            Model ini bekerja dengan membangun banyak pohon keputusan dan menggabungkan hasilnya untuk meningkatkan akurasi dan mengurangi overfitting.
+        </p>
+        <h3 style='color: #007bff; font-size: 24px;'>
+            📊 Metrik yang Digunakan
+        </h3>
+        <p>
+            - <b>Akurasi</b>: Proporsi prediksi yang benar dari total prediksi.
+            - <b>Confusion Matrix</b>: Menunjukkan jumlah prediksi benar dan salah untuk setiap kelas.
+            - <b>Classification Report</b>: Menampilkan precision, recall, dan F1-score untuk setiap kelas.
+        </p>
+        <h3 style='color: #007bff; font-size: 24px;'>
+            📈 Cara Interpretasi Hasil
+        </h3>
+        <p>
+            - <b>Akurasi</b>: Semakin tinggi akurasi, semakin baik model dalam memprediksi kelas.
+            - <b>Confusion Matrix</b>: Diagonal utama menunjukkan prediksi yang benar.
+            - <b>Classification Report</b>: Precision tinggi berarti sedikit false positives, recall tinggi berarti sedikit false negatives.
+        </p>
+    """, unsafe_allow_html=True)
+
+    use_kmeans = st.checkbox("Gunakan hasil klaster dari K-Means sebagai target", value=True)
     
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, df['Cluster'], test_size=0.3, random_state=42)
+    if use_kmeans:
+        y = df['Cluster']
+    else:
+        y = df['score']  # atau target lain yang Anda inginkan
+    
+    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
     rf = RandomForestClassifier(n_estimators=100, random_state=42)
     rf.fit(X_train, y_train)
     y_pred = rf.predict(X_test)
@@ -148,11 +173,15 @@ with tab3:
     cm = confusion_matrix(y_test, y_pred)
     fig = px.imshow(cm, text_auto=True, color_continuous_scale='Blues', title="Confusion Matrix")
     st.plotly_chart(fig, use_container_width=True)
+
+    st.subheader("📊 Distribusi Kelas")
+    fig = px.bar(df['Cluster'].value_counts(), title="Distribusi Kelas", labels={'value': 'Jumlah', 'index': 'Kelas'})
+    st.plotly_chart(fig, use_container_width=True)
     
-    st.subheader("📊 Importance Features")
+    st.subheader("📊 Feature Importance")
     importances = rf.feature_importances_
     feature_names = ['income', 'score']
-    fig = px.bar(x=feature_names, y=importances, title="Importance Features dari Random Forest")
+    fig = px.bar(x=feature_names, y=importances, title="Feature Importance", labels={'x': 'Fitur', 'y': 'Importance'})
     st.plotly_chart(fig, use_container_width=True)
 
 # ---- Tab 4: Dashboard ----
@@ -161,42 +190,73 @@ with tab4:
     cluster_filter = st.multiselect("Pilih Cluster untuk ditampilkan:", options=df['Cluster'].unique(), default=df['Cluster'].unique())
     filtered_df = df[df['Cluster'].isin(cluster_filter)]
     
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        fig = px.scatter(filtered_df, x='income', y='score', color=filtered_df['Cluster'].astype(str), title="Scatter Plot Filtered by Cluster")
-        st.plotly_chart(fig, use_container_width=True)
-    
-    with col2:
-        cluster_counts = filtered_df['Cluster'].value_counts()
-        fig = px.pie(cluster_counts, names=cluster_counts.index, title="Distribusi Klaster Pelanggan")
-        st.plotly_chart(fig, use_container_width=True)
-    
     st.subheader("📋 Hasil Segmentasi Pelanggan")
     st.dataframe(filtered_df.head(20))
     
-    st.subheader("📊 Distribusi Data Pelanggan")
-    fig, ax = plt.subplots(figsize=(8, 4))
-    sns.boxplot(data=filtered_df[['income', 'score']], ax=ax)
-    st.pyplot(fig)
+    st.subheader("📥 Unduh Laporan")
+    if st.button("Unduh Hasil Klaster sebagai CSV"):
+        filtered_df.to_csv('hasil_klaster.csv', index=False)
+        st.success("File berhasil diunduh!")
+    
+    st.subheader("📊 Perbandingan Metode K-Means dan Random Forest")
+    st.markdown("""
+        <p>
+            - <b>K-Means</b>: Metode clustering yang membagi data menjadi beberapa kelompok berdasarkan kemiripan.
+            - <b>Random Forest</b>: Metode klasifikasi yang menggunakan ensemble dari banyak pohon keputusan.
+        </p>
+        <p>
+            <b>Silhouette Score (K-Means)</b>: {:.2f}
+        </p>
+        <p>
+            <b>Akurasi (Random Forest)</b>: {:.2f}%
+        </p>
+    """.format(silhouette_score(X_scaled, df['Cluster']), accuracy_score(y_test, y_pred) * 100), unsafe_allow_html=True)
+
+# ---- Tab 5: Panduan User ----
+with st.expander("ℹ️ Panduan Pengguna dan Penjelasan Hasil"):
+    st.markdown("""
+        ## 📘 Panduan Pengguna
+
+        ### Langkah 1: Unggah Data
+        - Pastikan file CSV memiliki kolom `income` dan `score`.
+        - Jika tidak memiliki data, gunakan data sampel yang disediakan.
+
+        ### Langkah 2: Visualisasi Data
+        - Buka tab **📊 Visualisasi Data** untuk melihat distribusi pendapatan dan skor pengeluaran.
+
+        ### Langkah 3: Segmentasi dengan K-Means
+        - Buka tab **📈 K-Means**.
+        - Gunakan **Elbow Method** untuk menentukan jumlah klaster.
+        - Pilih jumlah klaster dan lihat hasil segmentasi.
+
+        ### Langkah 4: Klasifikasi dengan Random Forest
+        - Buka tab **🌲 Random Forest**.
+        - Pilih target (hasil klaster atau kolom lain).
+        - Lihat **Classification Report** dan **Confusion Matrix**.
+
+        ### Langkah 5: Analisis Hasil di Dashboard
+        - Buka tab **📋 Dashboard**.
+        - Filter klaster tertentu dan unduh hasil segmentasi.
+
+        ## 📊 Penjelasan Hasil
+
+        ### Hasil K-Means Clustering
+        - **Klaster**: Pelanggan dibagi berdasarkan kemiripan pendapatan dan skor pengeluaran.
+        - **Interpretasi**:
+          - **Klaster 0**: Pendapatan rendah, pengeluaran rendah.
+          - **Klaster 1**: Pendapatan tinggi, pengeluaran tinggi.
+          - **Klaster 2**: Pendapatan menengah, pengeluaran menengah.
+
+        ### Hasil Random Forest
+        - **Akurasi**: Menunjukkan seberapa baik model memprediksi klaster.
+        - **Feature Importance**: Menunjukkan seberapa penting `income` dan `score` dalam prediksi.
+
+        ### Cara Menggunakan Hasil
+        - Gunakan hasil untuk target marketing, rekomendasi produk, dan program loyalitas.
+    """)
 
 # ---- Metrik Penting ----
 st.sidebar.header("📊 Metrik Penting")
 st.sidebar.metric("Total Pelanggan", df.shape[0])
 st.sidebar.metric("Jumlah Klaster", df['Cluster'].nunique())
 st.sidebar.metric("Akurasi Random Forest", f"{accuracy_score(y_test, y_pred) * 100:.2f}%")
-
-# Tombol unduh laporan
-def get_table_download_link(df):
-    csv = df.to_csv(index=False)
-    b64 = base64.b64encode(csv.encode()).decode()
-    href = f'<a href="data:file/csv;base64,{b64}" download="hasil_klaster.csv">Unduh Hasil Klaster (CSV)</a>'
-    return href
-
-st.sidebar.markdown(get_table_download_link(df), unsafe_allow_html=True)
-
-# Perbandingan K-Means dan Random Forest
-st.sidebar.header("📊 Perbandingan Metode")
-st.sidebar.markdown("**K-Means Silhouette Score:**")
-st.sidebar.markdown(f"{silhouette_score(X_scaled, df['Cluster']):.2f}")
-st.sidebar.markdown("**Random Forest Accuracy:**")
-st.sidebar.markdown(f"{accuracy_score(y_test, y_pred) * 100:.2f}%")
