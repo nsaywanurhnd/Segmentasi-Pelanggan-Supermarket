@@ -254,8 +254,7 @@ elif menu == "📋 Dashboard":
             b64 = base64.b64encode(csv.encode()).decode()
             href = f'<a href="data:file/csv;base64,{b64}" download="hasil_klaster.csv">Unduh CSV</a>'
             st.markdown(href, unsafe_allow_html=True)
-    else:
-        st.warning("Jalankan K-Means Clustering terlebih dahulu untuk melihat hasil segmentasi.")
+        
         # Visualisasi Silhouette Score
         st.markdown("### Silhouette Score")
         st.markdown("""
@@ -282,11 +281,6 @@ elif menu == "📋 Dashboard":
             """)
     else:
         st.warning("Jalankan K-Means Clustering terlebih dahulu untuk melihat hasil segmentasi.")
-        print("Checking menu:", menu)
-if menu == "📋 Dashboard":
-    print("Dashboard selected")
-else:
-    print("Other menu selected")
 
 # ---- Perbandingan Metode ----
 elif menu == "🔄 Perbandingan Metode":
