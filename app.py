@@ -256,6 +256,9 @@ if menu == "📈 K-Means":
     fig = px.scatter(df, x='income', y='score', color=df['Cluster'].astype(str), title="K-Means Clustering", labels={'color': 'Cluster'})
     st.plotly_chart(fig, use_container_width=True)
 
+for i, fig in enumerate(figures):
+    st.plotly_chart(fig, use_container_width=True, key=f"plotly_chart_{i}")
+
 # ---- Metrik Penting ----
 st.sidebar.header("📊 Metrik Penting")
 st.sidebar.metric("Total Pelanggan", df.shape[0])
