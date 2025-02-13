@@ -9,6 +9,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, silhouette_score, accuracy_score
+from fpdf import FPDF
+import base64
 
 # Set page config
 st.set_page_config(page_title="Segmentasi Pelanggan Toserba", page_icon="📊", layout="wide")
@@ -19,6 +21,17 @@ def load_data(file):
     df.columns = df.columns.str.strip()
     df.rename(columns={'spending_score': 'score', 'Annual Income (k$)': 'income'}, inplace=True)
     return df
+
+# Fungsi untuk membuat PDF
+def create_pdf(df):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt="Hasil Segmentasi Pelanggan", ln=True, align="C")
+    pdf.ln(10)
+    pdf.cell(200, 10, txt=df.to_string(), ln=True)
+    pdf_output = pdf.output(dest="S").encode("latin1")
+    return pdf_output
 
 # Sidebar untuk upload data
 st.sidebar.header("📂 Upload Data")
@@ -52,7 +65,7 @@ if not required_columns.issubset(df.columns):
 st.sidebar.header("📑 Menu Navigasi")
 menu = st.sidebar.radio(
     "Pilih Menu:",
-    ["🏠 Beranda", "📊 Visualisasi Data", "📈 K-Means", "🌲 Random Forest", "📋 Dashboard", "🔄 Perbandingan Metode"]
+    ["🏠 Beranda", "📊 Visualisasi Data", "📈 K-Means", "🌲 Random Forest", "📋 Dashboard", "🔄 Perbandingan Metode", "➕ Input Manual"]
 )
 
 # ---- Beranda ----
@@ -73,6 +86,7 @@ if menu == "🏠 Beranda":
         4. **Random Forest Classification**: Prediksi kategori pelanggan menggunakan Random Forest.
         5. **Dashboard**: Lihat hasil segmentasi dan analisis lebih lanjut.
         6. **Perbandingan Metode**: Bandingkan performa K-Means dan Random Forest.
+        7. **Input Manual**: Masukkan data manual untuk prediksi klaster.
 
         ### 🚀 Mulai Sekarang!
         Pilih menu di sidebar untuk memulai analisis Anda.
@@ -81,23 +95,30 @@ if menu == "🏠 Beranda":
 # ---- Visualisasi Data ----
 elif menu == "📊 Visualisasi Data":
     st.header("📊 Visualisasi Data")
-    st.markdown("""
-        ### 📈 Tren Income Pelanggan
-        Grafik di bawah ini menunjukkan tren pendapatan (`income`) pelanggan. 
-        Anda dapat melihat bagaimana pendapatan pelanggan berubah seiring waktu atau berdasarkan indeks data.
-    """)
     
-    fig = px.line(df, x=df.index, y='income', title="📈 Tren Income Pelanggan")
-    st.plotly_chart(fig, use_container_width=True)
+    # Tampilkan 10 data pertama
+    st.markdown("### 10 Data Pertama yang Digunakan")
+    st.dataframe(df.head(10))
     
-    st.markdown("""
-        ### 🎯 Distribusi Spending Score
-        Grafik di bawah ini menunjukkan distribusi skor pengeluaran (`score`) pelanggan. 
-        Anda dapat melihat sebaran skor pengeluaran pelanggan.
-    """)
+    # Pilih fitur untuk visualisasi
+    st.markdown("### Pilih Fitur untuk Visualisasi")
+    features = [col for col in df.columns if col != 'id']  # Kecuali kolom 'id'
+    selected_features = st.multiselect("Pilih fitur:", features, default=features[:2])
     
-    fig = px.pie(df, names="score", title="🎯 Distribusi Spending Score", hole=0.4)
-    st.plotly_chart(fig, use_container_width=True)
+    if len(selected_features) >= 1:
+        st.markdown(f"### Visualisasi {selected_features[0]}")
+        fig = px.histogram(df, x=selected_features[0], title=f"Distribusi {selected_features[0]}")
+        st.plotly_chart(fig, use_container_width=True)
+    
+    if len(selected_features) >= 2:
+        st.markdown(f"### Visualisasi {selected_features[1]}")
+        fig = px.histogram(df, x=selected_features[1], title=f"Distribusi {selected_features[1]}")
+        st.plotly_chart(fig, use_container_width=True)
+    
+    if len(selected_features) >= 2:
+        st.markdown(f"### Scatter Plot {selected_features[0]} vs {selected_features[1]}")
+        fig = px.scatter(df, x=selected_features[0], y=selected_features[1], title=f"{selected_features[0]} vs {selected_features[1]}")
+        st.plotly_chart(fig, use_container_width=True)
 
 # ---- K-Means Clustering ----
 elif menu == "📈 K-Means":
@@ -223,12 +244,22 @@ elif menu == "📋 Dashboard":
         
         st.markdown("### Unduh Laporan")
         st.markdown("""
-            Klik tombol di bawah ini untuk mengunduh hasil segmentasi dalam format CSV.
+            Klik tombol di bawah ini untuk mengunduh hasil segmentasi dalam format CSV atau PDF.
         """)
         
-        if st.button("Unduh Hasil Klaster sebagai CSV"):
-            filtered_df.to_csv('hasil_klaster.csv', index=False)
-            st.success("File berhasil diunduh!")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Unduh sebagai CSV"):
+                csv = filtered_df.to_csv(index=False)
+                b64 = base64.b64encode(csv.encode()).decode()
+                href = f'<a href="data:file/csv;base64,{b64}" download="hasil_klaster.csv">Unduh CSV</a>'
+                st.markdown(href, unsafe_allow_html=True)
+        with col2:
+            if st.button("Unduh sebagai PDF"):
+                pdf_output = create_pdf(filtered_df)
+                b64 = base64.b64encode(pdf_output).decode()
+                href = f'<a href="data:application/pdf;base64,{b64}" download="hasil_klaster.pdf">Unduh PDF</a>'
+                st.markdown(href, unsafe_allow_html=True)
     else:
         st.warning("Jalankan K-Means Clustering terlebih dahulu untuk melihat hasil segmentasi.")
 
@@ -256,3 +287,69 @@ elif menu == "🔄 Perbandingan Metode":
         ))
     else:
         st.warning("Jalankan K-Means dan Random Forest terlebih dahulu untuk melihat perbandingan.")
+
+# ---- Input Manual ----
+elif menu == "➕ Input Manual":
+    st.header("➕ Input Manual Data")
+    st.markdown("""
+        ### 📝 Masukkan Data Manual
+        Masukkan nilai `income` dan `score` untuk memprediksi klaster menggunakan K-Means dan Random Forest.
+    """)
+    
+    income = st.number_input("Income (Pendapatan dalam ribu dolar):", min_value=0, value=50)
+    score = st.number_input("Score (Skor Pengeluaran):", min_value=0, value=50)
+    
+    if st.button("Prediksi Klaster"):
+        # Prediksi menggunakan K-Means
+        if 'kmeans' in locals():
+            input_data = np.array([[income, score]])
+            input_scaled = scaler.transform(input_data)
+            cluster_pred = kmeans.predict(input_scaled)
+            st.markdown(f"### Prediksi Klaster (K-Means): **{cluster_pred[0]}**")
+        
+        # Prediksi menggunakan Random Forest
+        if 'rf' in locals():
+            input_data = np.array([[income, score]])
+            rf_pred = rf.predict(input_data)
+            st.markdown(f"### Prediksi Kategori (Random Forest): **{rf_pred[0]}**")
+        else:
+            st.warning("Jalankan Random Forest terlebih dahulu untuk melakukan prediksi.")
+
+# ---- Warna UI/UX ----
+st.markdown(
+    """
+    <style>
+    .stTabs [role="tablist"] { 
+        justify-content: center;
+        margin-top: 50px;
+    }
+    .stTabs [role="tab"] { 
+        font-size: 20px; 
+        font-weight: bold; 
+        padding: 15px 25px; 
+        border-radius: 8px;
+        background-color: #f0f2f6;
+        color: #333;
+    }
+    .stTabs [role="tab"]:hover { 
+        color: white; 
+        background-color: #007bff; 
+    }
+    .stTabs [role="tab"][aria-selected="true"] { 
+        color: white; 
+        background-color: #007bff; 
+    }
+    .stButton button {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+        border-radius: 8px;
+        padding: 10px 20px;
+    }
+    .stButton button:hover {
+        background-color: #0056b3;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
