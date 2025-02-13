@@ -9,22 +9,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, silhouette_score, accuracy_score
-import io
+import base64
+from io import BytesIO
 
 # Set page config
 st.set_page_config(page_title="Segmentasi Pelanggan Toserba", page_icon="📊", layout="wide")
-
-# Tambahkan CSS untuk UI/UX
-st.markdown(
-    """
-    <style>
-    .block-container { max-width: 1100px; }
-    .stTabs [role="tab"] { font-size: 20px; font-weight: bold; }
-    .stTabs [role="tab"][aria-selected="true"] { color: white; background-color: #007bff; }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 # Fungsi untuk membaca data
 def load_data(file):
@@ -32,6 +21,38 @@ def load_data(file):
     df.columns = df.columns.str.strip()
     df.rename(columns={'spending_score': 'score', 'Annual Income (k$)': 'income'}, inplace=True)
     return df
+
+# Tambahkan CSS untuk menyesuaikan ukuran halaman dan tampilan navbar
+st.markdown(
+    """
+    <style>
+    .block-container { 
+        padding-top: 1rem;
+        max-width: 1100px; 
+    }
+    .stTabs [role="tablist"] { 
+        justify-content: center;
+        margin-top: 50px;  /* Menurunkan posisi navbar */
+    }
+    .stTabs [role="tab"] { 
+        font-size: 35px; 
+        font-weight: bold; 
+        padding: 15px 25px; 
+        border-radius: 8px;
+    }
+    .stTabs [role="tab"]:hover { 
+        color: white; 
+        background-color: #007bff; 
+    }
+    .stTabs [role="tab"][aria-selected="true"] { 
+        color: white; 
+        background-color: #007bff; 
+        font-size: 24px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Sidebar untuk upload data
 st.sidebar.header("📂 Upload Data")
@@ -66,9 +87,7 @@ scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
 # Tabs sebagai navbar
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "📊 Visualisasi Data", "📈 K-Means", "🌲 Random Forest", "📋 Dashboard", "📊 Perbandingan Metode"
-])
+tab1, tab2, tab3, tab4 = st.tabs(["📊 Visualisasi Data", "📈 K-Means", "🌲 Random Forest", "📋 Dashboard"])
 
 # ---- Tab 1: Visualisasi Data ----
 with tab1:
@@ -76,7 +95,7 @@ with tab1:
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        fig = px.histogram(df, x='income', title="📈 Distribusi Income Pelanggan")
+        fig = px.line(df, x=df.index, y='income', title="📈 Tren Income Pelanggan")
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
@@ -86,55 +105,98 @@ with tab1:
 # ---- Tab 2: K-Means Clustering ----
 with tab2:
     st.header("📈 K-Means Clustering")
+    st.markdown("### Evaluasi dengan Elbow Method")
+    
+    @st.cache_data
+    def calculate_inertia(X_scaled, max_k=10):
+        inertia = []
+        for k in range(1, max_k + 1):
+            kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+            kmeans.fit(X_scaled)
+            inertia.append(kmeans.inertia_)
+        return inertia
+    
+    inertia = calculate_inertia(X_scaled)
+    fig = px.line(x=range(1, 11), y=inertia, markers=True, title="Elbow Method untuk Menentukan Jumlah Cluster")
+    fig.update_layout(xaxis_title="Jumlah Cluster", yaxis_title="Inertia")
+    st.plotly_chart(fig, use_container_width=True)
+    
     num_clusters = st.slider("Pilih jumlah cluster:", 2, 10, value=3)
     kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
     df['Cluster'] = kmeans.fit_predict(X_scaled)
     
-    silhouette_avg = silhouette_score(X_scaled, df['Cluster'])
-    st.metric("Silhouette Score", f"{silhouette_avg:.2f}")
-    
-    fig = px.scatter(df, x='income', y='score', color=df['Cluster'].astype(str), title="K-Means Clustering")
+    fig = px.scatter(df, x='income', y='score', color=df['Cluster'].astype(str), title="K-Means Clustering", labels={'color': 'Cluster'})
     st.plotly_chart(fig, use_container_width=True)
 
 # ---- Tab 3: Random Forest ----
 with tab3:
     st.header("🌲 Random Forest Classification")
+    st.markdown("### 🎯 Hasil Klasifikasi Pelanggan dengan Random Forest")
+    st.markdown("""
+    **Random Forest** adalah metode klasifikasi yang menggunakan ensemble dari pohon keputusan. 
+    Metrik yang digunakan untuk evaluasi adalah **akurasi**, **precision**, **recall**, dan **f1-score**.
+    """)
+    
     X_train, X_test, y_train, y_test = train_test_split(X_scaled, df['Cluster'], test_size=0.3, random_state=42)
     rf = RandomForestClassifier(n_estimators=100, random_state=42)
     rf.fit(X_train, y_train)
     y_pred = rf.predict(X_test)
     
-    accuracy = accuracy_score(y_test, y_pred)
-    st.metric("Akurasi Random Forest", f"{accuracy * 100:.2f}%")
+    st.subheader("Classification Report")
+    st.text(classification_report(y_test, y_pred))
     
     cm = confusion_matrix(y_test, y_pred)
     fig = px.imshow(cm, text_auto=True, color_continuous_scale='Blues', title="Confusion Matrix")
     st.plotly_chart(fig, use_container_width=True)
     
-    feature_importance = pd.DataFrame({'Feature': ['income', 'score'], 'Importance': rf.feature_importances_})
-    fig = px.bar(feature_importance, x='Feature', y='Importance', title="Feature Importance")
+    st.subheader("📊 Importance Features")
+    importances = rf.feature_importances_
+    feature_names = ['income', 'score']
+    fig = px.bar(x=feature_names, y=importances, title="Importance Features dari Random Forest")
     st.plotly_chart(fig, use_container_width=True)
 
 # ---- Tab 4: Dashboard ----
 with tab4:
     st.header("📋 Dashboard Segmentasi Pelanggan")
-    selected_cluster = st.selectbox("Pilih Cluster:", df['Cluster'].unique())
-    filtered_df = df[df['Cluster'] == selected_cluster]
+    cluster_filter = st.multiselect("Pilih Cluster untuk ditampilkan:", options=df['Cluster'].unique(), default=df['Cluster'].unique())
+    filtered_df = df[df['Cluster'].isin(cluster_filter)]
     
-    st.dataframe(filtered_df)
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        fig = px.scatter(filtered_df, x='income', y='score', color=filtered_df['Cluster'].astype(str), title="Scatter Plot Filtered by Cluster")
+        st.plotly_chart(fig, use_container_width=True)
     
-    buffer = io.BytesIO()
-    filtered_df.to_csv(buffer, index=False)
-    buffer.seek(0)
-    st.download_button("📥 Unduh Data", data=buffer, file_name="segmentasi_pelanggan.csv", mime="text/csv")
-
-# ---- Tab 5: Perbandingan Metode ----
-with tab5:
-    st.header("📊 Perbandingan Metode K-Means vs Random Forest")
-    st.metric("Silhouette Score K-Means", f"{silhouette_avg:.2f}")
-    st.metric("Akurasi Random Forest", f"{accuracy * 100:.2f}%")
+    with col2:
+        cluster_counts = filtered_df['Cluster'].value_counts()
+        fig = px.pie(cluster_counts, names=cluster_counts.index, title="Distribusi Klaster Pelanggan")
+        st.plotly_chart(fig, use_container_width=True)
     
-    fig, ax = plt.subplots()
-    sns.barplot(x=['K-Means', 'Random Forest'], y=[silhouette_avg, accuracy], ax=ax)
-    ax.set_title("Perbandingan Skor")
+    st.subheader("📋 Hasil Segmentasi Pelanggan")
+    st.dataframe(filtered_df.head(20))
+    
+    st.subheader("📊 Distribusi Data Pelanggan")
+    fig, ax = plt.subplots(figsize=(8, 4))
+    sns.boxplot(data=filtered_df[['income', 'score']], ax=ax)
     st.pyplot(fig)
+
+# ---- Metrik Penting ----
+st.sidebar.header("📊 Metrik Penting")
+st.sidebar.metric("Total Pelanggan", df.shape[0])
+st.sidebar.metric("Jumlah Klaster", df['Cluster'].nunique())
+st.sidebar.metric("Akurasi Random Forest", f"{accuracy_score(y_test, y_pred) * 100:.2f}%")
+
+# Tombol unduh laporan
+def get_table_download_link(df):
+    csv = df.to_csv(index=False)
+    b64 = base64.b64encode(csv.encode()).decode()
+    href = f'<a href="data:file/csv;base64,{b64}" download="hasil_klaster.csv">Unduh Hasil Klaster (CSV)</a>'
+    return href
+
+st.sidebar.markdown(get_table_download_link(df), unsafe_allow_html=True)
+
+# Perbandingan K-Means dan Random Forest
+st.sidebar.header("📊 Perbandingan Metode")
+st.sidebar.markdown("**K-Means Silhouette Score:**")
+st.sidebar.markdown(f"{silhouette_score(X_scaled, df['Cluster']):.2f}")
+st.sidebar.markdown("**Random Forest Accuracy:**")
+st.sidebar.markdown(f"{accuracy_score(y_test, y_pred) * 100:.2f}%")
