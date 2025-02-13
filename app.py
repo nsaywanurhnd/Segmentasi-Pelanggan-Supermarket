@@ -48,10 +48,6 @@ if not required_columns.issubset(df.columns):
     st.error(f"Dataset harus memiliki kolom: {', '.join(required_columns)}")
     st.stop()
 
-X = df[['income', 'score']]
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
-
 # Sidebar untuk navigasi
 st.sidebar.header("📑 Menu Navigasi")
 menu = st.sidebar.radio(
@@ -85,6 +81,10 @@ elif menu == "📈 K-Means":
             kmeans.fit(X_scaled)
             inertia.append(kmeans.inertia_)
         return inertia
+    
+    X = df[['income', 'score']]
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
     
     inertia = calculate_inertia(X_scaled)
     fig = px.line(x=range(1, 11), y=inertia, markers=True, title="Elbow Method untuk Menentukan Jumlah Cluster")
@@ -127,14 +127,13 @@ elif menu == "🌲 Random Forest":
         </p>
     """, unsafe_allow_html=True)
 
-    use_kmeans = st.checkbox("Gunakan hasil klaster dari K-Means sebagai target", value=True)
+    # Pilih kolom target
+    target_column = st.selectbox("Pilih kolom target:", df.columns)
     
-    if use_kmeans:
-        y = df['Cluster']
-    else:
-        y = df['score']  # atau target lain yang Anda inginkan
+    X = df[['income', 'score']]
+    y = df[target_column]
     
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
     rf = RandomForestClassifier(n_estimators=100, random_state=42)
     rf.fit(X_train, y_train)
     y_pred = rf.predict(X_test)
@@ -146,10 +145,6 @@ elif menu == "🌲 Random Forest":
     fig = px.imshow(cm, text_auto=True, color_continuous_scale='Blues', title="Confusion Matrix")
     st.plotly_chart(fig, use_container_width=True)
 
-    st.subheader("📊 Distribusi Kelas")
-    fig = px.bar(df['Cluster'].value_counts(), title="Distribusi Kelas", labels={'value': 'Jumlah', 'index': 'Kelas'})
-    st.plotly_chart(fig, use_container_width=True)
-    
     st.subheader("📊 Feature Importance")
     importances = rf.feature_importances_
     feature_names = ['income', 'score']
@@ -159,33 +154,31 @@ elif menu == "🌲 Random Forest":
 # ---- Dashboard ----
 elif menu == "📋 Dashboard":
     st.header("📋 Dashboard Segmentasi Pelanggan")
-    cluster_filter = st.multiselect("Pilih Cluster untuk ditampilkan:", options=df['Cluster'].unique(), default=df['Cluster'].unique())
-    filtered_df = df[df['Cluster'].isin(cluster_filter)]
     
-    st.subheader("📋 Hasil Segmentasi Pelanggan")
-    st.dataframe(filtered_df.head(20))
-    
-    st.subheader("📥 Unduh Laporan")
-    if st.button("Unduh Hasil Klaster sebagai CSV"):
-        filtered_df.to_csv('hasil_klaster.csv', index=False)
-        st.success("File berhasil diunduh!")
-    
-    st.subheader("📊 Perbandingan Metode K-Means dan Random Forest")
-    st.markdown("""
-        <p>
-            - <b>K-Means</b>: Metode clustering yang membagi data menjadi beberapa kelompok berdasarkan kemiripan.
-            - <b>Random Forest</b>: Metode klasifikasi yang menggunakan ensemble dari banyak pohon keputusan.
-        </p>
-        <p>
-            <b>Silhouette Score (K-Means)</b>: {:.2f}
-        </p>
-        <p>
-            <b>Akurasi (Random Forest)</b>: {:.2f}%
-        </p>
-    """.format(silhouette_score(X_scaled, df['Cluster']), accuracy_score(y_test, y_pred) * 100), unsafe_allow_html=True)
+    if 'Cluster' in df.columns:
+        cluster_filter = st.multiselect("Pilih Cluster untuk ditampilkan:", options=df['Cluster'].unique(), default=df['Cluster'].unique())
+        filtered_df = df[df['Cluster'].isin(cluster_filter)]
+        
+        st.subheader("📋 Hasil Segmentasi Pelanggan")
+        st.dataframe(filtered_df.head(20))
+        
+        st.subheader("📥 Unduh Laporan")
+        if st.button("Unduh Hasil Klaster sebagai CSV"):
+            filtered_df.to_csv('hasil_klaster.csv', index=False)
+            st.success("File berhasil diunduh!")
+    else:
+        st.warning("Jalankan K-Means Clustering terlebih dahulu untuk melihat hasil segmentasi.")
 
 # ---- Metrik Penting ----
 st.sidebar.header("📊 Metrik Penting")
 st.sidebar.metric("Total Pelanggan", df.shape[0])
-st.sidebar.metric("Jumlah Klaster", df['Cluster'].nunique())
-st.sidebar.metric("Akurasi Random Forest", f"{accuracy_score(y_test, y_pred) * 100:.2f}%")
+
+if 'Cluster' in df.columns:
+    st.sidebar.metric("Jumlah Klaster", df['Cluster'].nunique())
+else:
+    st.sidebar.metric("Jumlah Klaster", "Belum dihitung")
+
+if 'y_test' in locals() and 'y_pred' in locals():
+    st.sidebar.metric("Akurasi Random Forest", f"{accuracy_score(y_test, y_pred) * 100:.2f}%")
+else:
+    st.sidebar.metric("Akurasi Random Forest", "Belum dihitung")
