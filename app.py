@@ -9,6 +9,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, silhouette_score, accuracy_score
+import base64
+import io
 
 # Set page config
 st.set_page_config(page_title="Segmentasi Pelanggan Toserba", page_icon="📊", layout="wide")
@@ -129,6 +131,12 @@ with tab2:
 # ---- Tab 3: Random Forest ----
 with tab3:
     st.header("🌲 Random Forest Classification")
+    st.markdown("### 🎯 Hasil Klasifikasi Pelanggan dengan Random Forest")
+    st.markdown("""
+    **Random Forest** adalah metode ensemble learning yang menggunakan banyak decision tree untuk meningkatkan akurasi prediksi. 
+    Metrik yang digunakan adalah **akurasi**, **precision**, **recall**, dan **f1-score**.
+    """)
+    
     X_train, X_test, y_train, y_test = train_test_split(X_scaled, df['Cluster'], test_size=0.3, random_state=42)
     rf = RandomForestClassifier(n_estimators=100, random_state=42)
     rf.fit(X_train, y_train)
@@ -139,6 +147,11 @@ with tab3:
     
     cm = confusion_matrix(y_test, y_pred)
     fig = px.imshow(cm, text_auto=True, color_continuous_scale='Blues', title="Confusion Matrix")
+    st.plotly_chart(fig, use_container_width=True)
+    
+    st.subheader("📊 Feature Importance")
+    feature_importances = pd.Series(rf.feature_importances_, index=['income', 'score'])
+    fig = px.bar(feature_importances, title="Feature Importance")
     st.plotly_chart(fig, use_container_width=True)
 
 # ---- Tab 4: Dashboard ----
@@ -170,3 +183,20 @@ st.sidebar.header("📊 Metrik Penting")
 st.sidebar.metric("Total Pelanggan", df.shape[0])
 st.sidebar.metric("Jumlah Klaster", df['Cluster'].nunique())
 st.sidebar.metric("Akurasi Random Forest", f"{accuracy_score(y_test, y_pred) * 100:.2f}%")
+
+# Tombol Unduh Laporan
+def get_table_download_link(df):
+    csv = df.to_csv(index=False)
+    b64 = base64.b64encode(csv.encode()).decode()
+    href = f'<a href="data:file/csv;base64,{b64}" download="hasil_klaster.csv">📥 Unduh Hasil Klaster (CSV)</a>'
+    return href
+
+st.sidebar.markdown(get_table_download_link(df), unsafe_allow_html=True)
+
+# Perbandingan Metode
+st.sidebar.header("📊 Perbandingan Metode")
+st.sidebar.markdown("""
+**K-Means vs Random Forest:**
+- **K-Means:** Metode clustering yang membagi data menjadi beberapa kelompok berdasarkan kemiripan.
+- **Random Forest:** Metode klasifikasi yang menggunakan ensemble learning untuk meningkatkan akurasi prediksi.
+""")
