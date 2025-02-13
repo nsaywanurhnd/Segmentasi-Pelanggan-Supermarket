@@ -169,6 +169,93 @@ elif menu == "📋 Dashboard":
     else:
         st.warning("Jalankan K-Means Clustering terlebih dahulu untuk melihat hasil segmentasi.")
 
+# ---- Tab 5: Panduan User ----
+with st.expander("ℹ️ Panduan Pengguna"):
+    st.markdown("""
+        ## 📘 Panduan Pengguna
+
+        ### Langkah 1: Unggah Data
+        - Pastikan file CSV memiliki kolom `income` dan `score`.
+        - Jika tidak memiliki data, gunakan data sampel yang disediakan.
+
+        ### Langkah 2: Visualisasi Data
+        - Buka menu **📊 Visualisasi Data** untuk melihat distribusi pendapatan dan skor pengeluaran.
+
+        ### Langkah 3: Segmentasi dengan K-Means
+        - Buka menu **📈 K-Means**.
+        - Gunakan **Elbow Method** untuk menentukan jumlah klaster.
+        - Pilih jumlah klaster (nilai K harus ganjil dan dimulai dari 3).
+        - Lihat hasil segmentasi pada scatter plot.
+
+        ### Langkah 4: Klasifikasi dengan Random Forest
+        - Buka menu **🌲 Random Forest**.
+        - Pilih kolom target yang ingin diprediksi.
+        - Lihat **Classification Report** dan **Confusion Matrix**.
+
+        ### Langkah 5: Analisis Hasil di Dashboard
+        - Buka menu **📋 Dashboard**.
+        - Filter klaster tertentu dan unduh hasil segmentasi.
+
+        ### Langkah 6: Perbandingan Metode
+        - Buka menu **🔄 Perbandingan Metode** untuk melihat perbandingan antara K-Means dan Random Forest.
+    """)
+
+# ---- Tab 6: Perbandingan Metode ----
+if menu == "🔄 Perbandingan Metode":
+    st.header("🔄 Perbandingan Metode K-Means dan Random Forest")
+    
+    if 'Cluster' in df.columns and 'y_test' in locals() and 'y_pred' in locals():
+        st.markdown("""
+            ### 📊 Hasil K-Means Clustering
+            - **Silhouette Score**: {:.2f}
+            - **Inertia**: {:.2f}
+
+            ### 📊 Hasil Random Forest
+            - **Akurasi**: {:.2f}%
+            - **Precision, Recall, F1-Score**: Lihat di menu **🌲 Random Forest**.
+
+            ### 📝 Kesimpulan
+            - **K-Means** cocok untuk segmentasi data berdasarkan kemiripan.
+            - **Random Forest** cocok untuk prediksi kelas atau nilai target.
+        """.format(
+            silhouette_score(X_scaled, df['Cluster']),
+            kmeans.inertia_ if 'kmeans' in locals() else "Belum dihitung",
+            accuracy_score(y_test, y_pred) * 100
+        ))
+    else:
+        st.warning("Jalankan K-Means dan Random Forest terlebih dahulu untuk melihat perbandingan.")
+
+# ---- Validasi Nilai K di K-Means ----
+if menu == "📈 K-Means":
+    st.header("📈 K-Means Clustering")
+    st.markdown("### Evaluasi dengan Elbow Method")
+    
+    @st.cache_data
+    def calculate_inertia(X_scaled, max_k=10):
+        inertia = []
+        for k in range(1, max_k + 1):
+            kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+            kmeans.fit(X_scaled)
+            inertia.append(kmeans.inertia_)
+        return inertia
+    
+    X = df[['income', 'score']]
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
+    inertia = calculate_inertia(X_scaled)
+    fig = px.line(x=range(1, 11), y=inertia, markers=True, title="Elbow Method untuk Menentukan Jumlah Cluster")
+    fig.update_layout(xaxis_title="Jumlah Cluster", yaxis_title="Inertia")
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Validasi nilai K (harus ganjil dan dimulai dari 3)
+    num_clusters = st.slider("Pilih jumlah cluster:", 3, 11, step=2, value=3)
+    kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
+    df['Cluster'] = kmeans.fit_predict(X_scaled)
+    
+    fig = px.scatter(df, x='income', y='score', color=df['Cluster'].astype(str), title="K-Means Clustering", labels={'color': 'Cluster'})
+    st.plotly_chart(fig, use_container_width=True)
+
 # ---- Metrik Penting ----
 st.sidebar.header("📊 Metrik Penting")
 st.sidebar.metric("Total Pelanggan", df.shape[0])
