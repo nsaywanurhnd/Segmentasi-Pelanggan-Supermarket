@@ -14,6 +14,18 @@ import io
 # Set page config
 st.set_page_config(page_title="Segmentasi Pelanggan Toserba", page_icon="📊", layout="wide")
 
+# Tambahkan CSS untuk UI/UX
+st.markdown(
+    """
+    <style>
+    .block-container { max-width: 1100px; }
+    .stTabs [role="tab"] { font-size: 20px; font-weight: bold; }
+    .stTabs [role="tab"][aria-selected="true"] { color: white; background-color: #007bff; }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Fungsi untuk membaca data
 def load_data(file):
     df = pd.read_csv(file)
@@ -121,3 +133,8 @@ with tab5:
     st.header("📊 Perbandingan Metode K-Means vs Random Forest")
     st.metric("Silhouette Score K-Means", f"{silhouette_avg:.2f}")
     st.metric("Akurasi Random Forest", f"{accuracy * 100:.2f}%")
+    
+    fig, ax = plt.subplots()
+    sns.barplot(x=['K-Means', 'Random Forest'], y=[silhouette_avg, accuracy], ax=ax)
+    ax.set_title("Perbandingan Skor")
+    st.pyplot(fig)
