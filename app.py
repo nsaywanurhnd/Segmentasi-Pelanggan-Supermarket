@@ -9,7 +9,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, silhouette_score, accuracy_score
-from fpdf import FPDF
 import base64
 
 # Set page config
@@ -21,17 +20,6 @@ def load_data(file):
     df.columns = df.columns.str.strip()
     df.rename(columns={'spending_score': 'score', 'Annual Income (k$)': 'income'}, inplace=True)
     return df
-
-# Fungsi untuk membuat PDF
-def create_pdf(df):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="Hasil Segmentasi Pelanggan", ln=True, align="C")
-    pdf.ln(10)
-    pdf.cell(200, 10, txt=df.to_string(), ln=True)
-    pdf_output = pdf.output(dest="S").encode("latin1")
-    return pdf_output
 
 # Sidebar untuk upload data
 st.sidebar.header("📂 Upload Data")
@@ -244,22 +232,14 @@ elif menu == "📋 Dashboard":
         
         st.markdown("### Unduh Laporan")
         st.markdown("""
-            Klik tombol di bawah ini untuk mengunduh hasil segmentasi dalam format CSV atau PDF.
+            Klik tombol di bawah ini untuk mengunduh hasil segmentasi dalam format CSV.
         """)
         
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("Unduh sebagai CSV"):
-                csv = filtered_df.to_csv(index=False)
-                b64 = base64.b64encode(csv.encode()).decode()
-                href = f'<a href="data:file/csv;base64,{b64}" download="hasil_klaster.csv">Unduh CSV</a>'
-                st.markdown(href, unsafe_allow_html=True)
-        with col2:
-            if st.button("Unduh sebagai PDF"):
-                pdf_output = create_pdf(filtered_df)
-                b64 = base64.b64encode(pdf_output).decode()
-                href = f'<a href="data:application/pdf;base64,{b64}" download="hasil_klaster.pdf">Unduh PDF</a>'
-                st.markdown(href, unsafe_allow_html=True)
+        if st.button("Unduh sebagai CSV"):
+            csv = filtered_df.to_csv(index=False)
+            b64 = base64.b64encode(csv.encode()).decode()
+            href = f'<a href="data:file/csv;base64,{b64}" download="hasil_klaster.csv">Unduh CSV</a>'
+            st.markdown(href, unsafe_allow_html=True)
     else:
         st.warning("Jalankan K-Means Clustering terlebih dahulu untuk melihat hasil segmentasi.")
 
