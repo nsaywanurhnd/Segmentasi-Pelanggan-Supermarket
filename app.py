@@ -68,8 +68,8 @@ if menu == "📊 Visualisasi Data":
         fig = px.pie(df, names="score", title="🎯 Distribusi Spending Score", hole=0.4)
         st.plotly_chart(fig, use_container_width=True)
 
-# ---- K-Means Clustering ----
-elif menu == "📈 K-Means":
+# ---- Tab 2: K-Means Clustering ----
+if menu == "📈 K-Means":
     st.header("📈 K-Means Clustering")
     st.markdown("### Evaluasi dengan Elbow Method")
     
@@ -91,12 +91,25 @@ elif menu == "📈 K-Means":
     fig.update_layout(xaxis_title="Jumlah Cluster", yaxis_title="Inertia")
     st.plotly_chart(fig, use_container_width=True)
     
-    num_clusters = st.slider("Pilih jumlah cluster:", 2, 10, value=3)
+    # Validasi nilai K (harus ganjil dan dimulai dari 3)
+    num_clusters = st.slider("Pilih jumlah cluster:", 3, 11, step=2, value=3)
     kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
     df['Cluster'] = kmeans.fit_predict(X_scaled)
     
-    fig = px.scatter(df, x='income', y='score', color=df['Cluster'].astype(str), title="K-Means Clustering", labels={'color': 'Cluster'})
-    st.plotly_chart(fig, use_container_width=True)
+    # Buat list figures untuk menyimpan grafik
+    figures = []
+    
+    # Grafik 1: Scatter plot untuk K-Means
+    fig1 = px.scatter(df, x='income', y='score', color=df['Cluster'].astype(str), title="K-Means Clustering")
+    figures.append(fig1)
+    
+    # Grafik 2: Histogram untuk distribusi income
+    fig2 = px.histogram(df, x='income', title="Distribusi Income")
+    figures.append(fig2)
+    
+    # Tampilkan semua grafik
+    for i, fig in enumerate(figures):
+        st.plotly_chart(fig, use_container_width=True)
 
 # ---- Random Forest ----
 elif menu == "🌲 Random Forest":
@@ -256,8 +269,6 @@ if menu == "📈 K-Means":
     fig = px.scatter(df, x='income', y='score', color=df['Cluster'].astype(str), title="K-Means Clustering", labels={'color': 'Cluster'})
     st.plotly_chart(fig, use_container_width=True)
 
-for i, fig in enumerate(figures):
-    st.plotly_chart(fig, use_container_width=True, key=f"plotly_chart_{i}")
 
 # ---- Metrik Penting ----
 st.sidebar.header("📊 Metrik Penting")
