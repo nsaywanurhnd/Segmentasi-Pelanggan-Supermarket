@@ -282,6 +282,11 @@ elif menu == "📋 Dashboard":
             """)
     else:
         st.warning("Jalankan K-Means Clustering terlebih dahulu untuk melihat hasil segmentasi.")
+        print("Checking menu:", menu)
+if menu == "📋 Dashboard":
+    print("Dashboard selected")
+else:
+    print("Other menu selected")
 
 # ---- Perbandingan Metode ----
 elif menu == "🔄 Perbandingan Metode":
