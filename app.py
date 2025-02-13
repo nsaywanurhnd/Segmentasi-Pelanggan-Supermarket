@@ -281,6 +281,33 @@ elif menu == "📋 Dashboard":
             """)
     else:
         st.warning("Jalankan K-Means Clustering terlebih dahulu untuk melihat hasil segmentasi.")
+        
+        # Visualisasi Silhouette Score
+        st.markdown("### Silhouette Score")
+        st.markdown("""
+            **Silhouette Score** mengukur seberapa baik data terpisah ke dalam klaster. 
+            Nilai berkisar antara -1 hingga 1, di mana nilai mendekati 1 menunjukkan klaster yang baik.
+        """)
+        
+        silhouette_avg = silhouette_score(X_scaled, df['Cluster'])
+        st.metric("Silhouette Score", f"{silhouette_avg:.2f}")
+        
+        # Diagram Silhouette Score
+        fig = px.bar(x=["Silhouette Score"], y=[silhouette_avg], title="Silhouette Score", labels={'x': 'Metrik', 'y': 'Nilai'})
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Penjelasan Hasil Klaster
+        st.markdown("### Penjelasan Hasil Klaster")
+        for cluster in df['Cluster'].unique():
+            cluster_data = df[df['Cluster'] == cluster]
+            st.markdown(f"""
+                #### Klaster {cluster}
+                - **Rata-rata Income**: {cluster_data['income'].mean():.2f}
+                - **Rata-rata Score**: {cluster_data['score'].mean():.2f}
+                - **Jumlah Pelanggan**: {len(cluster_data)}
+            """)
+    else:
+        st.warning("Jalankan K-Means Clustering terlebih dahulu untuk melihat hasil segmentasi.")
 
 # ---- Perbandingan Metode ----
 elif menu == "🔄 Perbandingan Metode":
