@@ -217,6 +217,7 @@ elif menu == "🌲 Random Forest":
 elif menu == "📋 Dashboard":
     st.header("📋 Dashboard Segmentasi Pelanggan")
     
+    # Cek apakah kolom 'Cluster' sudah ada
     if 'Cluster' in df.columns:
         st.markdown("### Filter Klaster")
         st.markdown("""
@@ -247,6 +248,7 @@ elif menu == "📋 Dashboard":
 elif menu == "🔄 Perbandingan Metode":
     st.header("🔄 Perbandingan Metode K-Means dan Random Forest")
     
+    # Cek apakah K-Means dan Random Forest sudah dijalankan
     if 'Cluster' in df.columns and 'y_test' in locals() and 'y_pred' in locals():
         st.markdown("""
             ### 📊 Hasil K-Means Clustering
