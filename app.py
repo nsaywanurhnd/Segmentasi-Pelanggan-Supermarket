@@ -242,11 +242,6 @@ elif menu == "📋 Dashboard":
     # Cek apakah kolom 'Cluster' sudah ada
     if 'Cluster' in df.columns:
         st.markdown("### Filter Klaster")
-        st.markdown("""
-            Pilih klaster yang ingin ditampilkan. 
-            Anda dapat memilih satu atau beberapa klaster untuk dianalisis lebih lanjut.
-        """)
-        
         cluster_filter = st.multiselect("Pilih Cluster untuk ditampilkan:", options=df['Cluster'].unique(), default=df['Cluster'].unique())
         filtered_df = df[df['Cluster'].isin(cluster_filter)]
         
@@ -254,16 +249,13 @@ elif menu == "📋 Dashboard":
         st.dataframe(filtered_df.head(20))
         
         st.markdown("### Unduh Laporan")
-        st.markdown("""
-            Klik tombol di bawah ini untuk mengunduh hasil segmentasi dalam format CSV.
-        """)
-        
         if st.button("Unduh sebagai CSV"):
             csv = filtered_df.to_csv(index=False)
             b64 = base64.b64encode(csv.encode()).decode()
             href = f'<a href="data:file/csv;base64,{b64}" download="hasil_klaster.csv">Unduh CSV</a>'
             st.markdown(href, unsafe_allow_html=True)
-        
+    else:
+        st.warning("Jalankan K-Means Clustering terlebih dahulu untuk melihat hasil segmentasi.")
         # Visualisasi Silhouette Score
         st.markdown("### Silhouette Score")
         st.markdown("""
@@ -297,23 +289,13 @@ elif menu == "🔄 Perbandingan Metode":
     
     # Cek apakah K-Means dan Random Forest sudah dijalankan
     if 'Cluster' in df.columns and 'y_test' in locals() and 'y_pred' in locals():
-        st.markdown("""
-            ### 📊 Hasil K-Means Clustering
-            - **Silhouette Score**: {:.2f}
-            - **Inertia**: {:.2f}
-
-            ### 📊 Hasil Random Forest
-            - **Akurasi**: {:.2f}%
-            - **Precision, Recall, F1-Score**: Lihat di menu **🌲 Random Forest**.
-
-            ### 📝 Kesimpulan
-            - **K-Means** cocok untuk segmentasi data berdasarkan kemiripan.
-            - **Random Forest** cocok untuk prediksi kelas atau nilai target.
-        """.format(
-            silhouette_score(X_scaled, df['Cluster']),
-            kmeans.inertia_ if 'kmeans' in locals() else "Belum dihitung",
-            accuracy_score(y_test, y_pred) * 100
-        ))
+        st.markdown("### 📊 Hasil K-Means Clustering")
+        st.markdown(f"- **Silhouette Score**: {silhouette_score(X_scaled, df['Cluster']):.2f}")
+        
+        st.markdown("### 📊 Hasil Random Forest")
+        st.markdown(f"- **Akurasi**: {accuracy_score(y_test, y_pred) * 100:.2f}%")
+    else:
+        st.warning("Jalankan K-Means dan Random Forest terlebih dahulu untuk melihat perbandingan.")
         
         # Visualisasi Confusion Matrix
         st.markdown("### Confusion Matrix")
