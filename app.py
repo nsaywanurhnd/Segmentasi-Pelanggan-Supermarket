@@ -20,38 +20,6 @@ def load_data(file):
     df.rename(columns={'spending_score': 'score', 'Annual Income (k$)': 'income'}, inplace=True)
     return df
 
-# Tambahkan CSS untuk menyesuaikan ukuran halaman dan tampilan navbar
-st.markdown(
-    """
-    <style>
-    .block-container { 
-        padding-top: 1rem;
-        max-width: 1100px; 
-    }
-    .stTabs [role="tablist"] { 
-        justify-content: center;
-        margin-top: 50px;  /* Menurunkan posisi navbar */
-    }
-    .stTabs [role="tab"] { 
-        font-size: 35px; 
-        font-weight: bold; 
-        padding: 15px 25px; 
-        border-radius: 8px;
-    }
-    .stTabs [role="tab"]:hover { 
-        color: white; 
-        background-color: #007bff; 
-    }
-    .stTabs [role="tab"][aria-selected="true"] { 
-        color: white; 
-        background-color: #007bff; 
-        font-size: 24px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 # Sidebar untuk upload data
 st.sidebar.header("📂 Upload Data")
 uploaded_file = st.sidebar.file_uploader("Upload CSV file", type=['csv'])
@@ -84,24 +52,28 @@ X = df[['income', 'score']]
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# Tabs sebagai navbar
-tab1, tab2, tab3, tab4 = st.tabs(["📊 Visualisasi Data", "📈 K-Means", "🌲 Random Forest", "📋 Dashboard"])
+# Sidebar untuk navigasi
+st.sidebar.header("📑 Menu Navigasi")
+menu = st.sidebar.radio(
+    "Pilih Menu:",
+    ["📊 Visualisasi Data", "📈 K-Means", "🌲 Random Forest", "📋 Dashboard"]
+)
 
-# ---- Tab 1: Visualisasi Data ----
-with tab1:
+# ---- Visualisasi Data ----
+if menu == "📊 Visualisasi Data":
     st.header("📊 Visualisasi Data")
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        fig = px.histogram(df, x='income', title="📊 Distribusi Income Pelanggan", nbins=20)
+        fig = px.line(df, x=df.index, y='income', title="📈 Tren Income Pelanggan")
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        fig = px.histogram(df, x='score', title="📊 Distribusi Spending Score", nbins=20)
+        fig = px.pie(df, names="score", title="🎯 Distribusi Spending Score", hole=0.4)
         st.plotly_chart(fig, use_container_width=True)
 
-# ---- Tab 2: K-Means Clustering ----
-with tab2:
+# ---- K-Means Clustering ----
+elif menu == "📈 K-Means":
     st.header("📈 K-Means Clustering")
     st.markdown("### Evaluasi dengan Elbow Method")
     
@@ -126,8 +98,8 @@ with tab2:
     fig = px.scatter(df, x='income', y='score', color=df['Cluster'].astype(str), title="K-Means Clustering", labels={'color': 'Cluster'})
     st.plotly_chart(fig, use_container_width=True)
 
-# ---- Tab 3: Random Forest ----
-with tab3:
+# ---- Random Forest ----
+elif menu == "🌲 Random Forest":
     st.header("🌲 Random Forest Classification")
     st.markdown("""
         <h3 style='color: #007bff; font-size: 24px;'>
@@ -184,8 +156,8 @@ with tab3:
     fig = px.bar(x=feature_names, y=importances, title="Feature Importance", labels={'x': 'Fitur', 'y': 'Importance'})
     st.plotly_chart(fig, use_container_width=True)
 
-# ---- Tab 4: Dashboard ----
-with tab4:
+# ---- Dashboard ----
+elif menu == "📋 Dashboard":
     st.header("📋 Dashboard Segmentasi Pelanggan")
     cluster_filter = st.multiselect("Pilih Cluster untuk ditampilkan:", options=df['Cluster'].unique(), default=df['Cluster'].unique())
     filtered_df = df[df['Cluster'].isin(cluster_filter)]
@@ -211,49 +183,6 @@ with tab4:
             <b>Akurasi (Random Forest)</b>: {:.2f}%
         </p>
     """.format(silhouette_score(X_scaled, df['Cluster']), accuracy_score(y_test, y_pred) * 100), unsafe_allow_html=True)
-
-# ---- Tab 5: Panduan User ----
-with st.expander("ℹ️ Panduan Pengguna dan Penjelasan Hasil"):
-    st.markdown("""
-        ## 📘 Panduan Pengguna
-
-        ### Langkah 1: Unggah Data
-        - Pastikan file CSV memiliki kolom `income` dan `score`.
-        - Jika tidak memiliki data, gunakan data sampel yang disediakan.
-
-        ### Langkah 2: Visualisasi Data
-        - Buka tab **📊 Visualisasi Data** untuk melihat distribusi pendapatan dan skor pengeluaran.
-
-        ### Langkah 3: Segmentasi dengan K-Means
-        - Buka tab **📈 K-Means**.
-        - Gunakan **Elbow Method** untuk menentukan jumlah klaster.
-        - Pilih jumlah klaster dan lihat hasil segmentasi.
-
-        ### Langkah 4: Klasifikasi dengan Random Forest
-        - Buka tab **🌲 Random Forest**.
-        - Pilih target (hasil klaster atau kolom lain).
-        - Lihat **Classification Report** dan **Confusion Matrix**.
-
-        ### Langkah 5: Analisis Hasil di Dashboard
-        - Buka tab **📋 Dashboard**.
-        - Filter klaster tertentu dan unduh hasil segmentasi.
-
-        ## 📊 Penjelasan Hasil
-
-        ### Hasil K-Means Clustering
-        - **Klaster**: Pelanggan dibagi berdasarkan kemiripan pendapatan dan skor pengeluaran.
-        - **Interpretasi**:
-          - **Klaster 0**: Pendapatan rendah, pengeluaran rendah.
-          - **Klaster 1**: Pendapatan tinggi, pengeluaran tinggi.
-          - **Klaster 2**: Pendapatan menengah, pengeluaran menengah.
-
-        ### Hasil Random Forest
-        - **Akurasi**: Menunjukkan seberapa baik model memprediksi klaster.
-        - **Feature Importance**: Menunjukkan seberapa penting `income` dan `score` dalam prediksi.
-
-        ### Cara Menggunakan Hasil
-        - Gunakan hasil untuk target marketing, rekomendasi produk, dan program loyalitas.
-    """)
 
 # ---- Metrik Penting ----
 st.sidebar.header("📊 Metrik Penting")
