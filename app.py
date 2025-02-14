@@ -111,44 +111,30 @@ elif menu == "📊 Visualisasi Data":
 # ---- K-Means Clustering ----
 elif menu == "📈 K-Means":
     st.header("📈 K-Means Clustering")
-    st.markdown("""
-        ### 📝 Deskripsi Metode
-        K-Means Clustering adalah metode untuk membagi data ke dalam beberapa kelompok (klaster) berdasarkan kemiripan. 
-        Metode ini cocok untuk segmentasi pelanggan berdasarkan pendapatan dan skor pengeluaran.
-    """)
     
-    st.markdown("### Evaluasi dengan Elbow Method")
-    st.markdown("""
-        **Elbow Method** digunakan untuk menentukan jumlah klaster yang optimal. 
-        Grafik di bawah ini menunjukkan nilai inersia (inertia) untuk berbagai jumlah klaster. 
-        Pilih jumlah klaster di mana penurunan inersia mulai melambat (titik siku).
-    """)
-    
-    @st.cache_data
-    def calculate_inertia(X_scaled, max_k=10):
-        inertia = []
-        for k in range(1, max_k + 1):
-            kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
-            kmeans.fit(X_scaled)
-            inertia.append(kmeans.inertia_)
-        return inertia
-    
-    X = df[['income', 'score']]
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-    
-    inertia = calculate_inertia(X_scaled)
-    fig = px.line(x=range(1, 11), y=inertia, markers=True, title="Elbow Method untuk Menentukan Jumlah Cluster")
-    fig.update_layout(xaxis_title="Jumlah Cluster", yaxis_title="Inertia")
-    st.plotly_chart(fig, use_container_width=True)
-    
-    st.markdown("### Pilih Jumlah Klaster")
-    st.markdown("""
-        Pilih jumlah klaster (nilai K) yang akan digunakan. 
-        **Pastikan nilai K ganjil dan dimulai dari 3**.
-    """)
-    
+    # Pilih jumlah klaster
     num_clusters = st.slider("Pilih jumlah cluster:", 3, 11, step=2, value=3)
+    
+    # Tombol "Run Clustering"
+    if st.button("Run Clustering"):
+        kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
+        df['Cluster'] = kmeans.fit_predict(X_scaled)  # Tambahkan kolom 'Cluster' ke df
+        st.success("Clustering selesai! Hasil klaster telah ditambahkan ke dataset.")
+
+# ---- Dashboard ----
+elif menu == "📋 Dashboard":
+    st.header("📋 Dashboard Segmentasi Pelanggan")
+    
+    # Cek apakah kolom 'Cluster' sudah ada
+    if 'Cluster' in df.columns:
+        st.markdown("### Filter Klaster")
+        cluster_filter = st.multiselect("Pilih Cluster untuk ditampilkan:", options=df['Cluster'].unique(), default=df['Cluster'].unique())
+        filtered_df = df[df['Cluster'].isin(cluster_filter)]
+        
+        st.markdown("### Hasil Segmentasi Pelanggan")
+        st.dataframe(filtered_df.head(20))
+    else:
+        st.warning("Jalankan K-Means Clustering terlebih dahulu untuk melihat hasil segmentasi.")
     
     # Tombol "Run Clustering"
     if st.button("Run Clustering"):
