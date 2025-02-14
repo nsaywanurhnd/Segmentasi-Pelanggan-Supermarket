@@ -117,15 +117,15 @@ elif menu == "📈 K-Means":
     
     # Scaling data
     scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)  # Define X_scaled here
+    X_scaled = scaler.fit_transform(X)
     
     # Pilih jumlah klaster
     num_clusters = st.slider("Pilih jumlah cluster:", 3, 11, step=2, value=3)
     
     # Tombol "Run Clustering"
     if st.button("Run Clustering"):
-        kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
-        df['Cluster'] = kmeans.fit_predict(X_scaled)  # Use X_scaled here
+        kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)  # Fixed random_state
+        df['Cluster'] = kmeans.fit_predict(X_scaled)
         st.success("Clustering selesai! Hasil klaster telah ditambahkan ke dataset.")
         
         # Tampilkan Tabel Hasil Klaster
