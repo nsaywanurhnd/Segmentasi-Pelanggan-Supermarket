@@ -365,4 +365,9 @@ st.markdown(
         padding: 10px 20px;
     }
     .stButton button:hover {
-        background-color: #0056
+        background-color: #0056b3;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
