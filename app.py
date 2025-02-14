@@ -112,13 +112,20 @@ elif menu == "📊 Visualisasi Data":
 elif menu == "📈 K-Means":
     st.header("📈 K-Means Clustering")
     
+    # Pilih fitur untuk clustering
+    X = df[['income', 'score']]
+    
+    # Scaling data
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)  # Define X_scaled here
+    
     # Pilih jumlah klaster
     num_clusters = st.slider("Pilih jumlah cluster:", 3, 11, step=2, value=3)
     
     # Tombol "Run Clustering"
     if st.button("Run Clustering"):
         kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
-        df['Cluster'] = kmeans.fit_predict(X_scaled)
+        df['Cluster'] = kmeans.fit_predict(X_scaled)  # Use X_scaled here
         st.success("Clustering selesai! Hasil klaster telah ditambahkan ke dataset.")
         
         # Tampilkan Tabel Hasil Klaster
