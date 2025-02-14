@@ -118,8 +118,43 @@ elif menu == "📈 K-Means":
     # Tombol "Run Clustering"
     if st.button("Run Clustering"):
         kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
-        df['Cluster'] = kmeans.fit_predict(X_scaled)  # Tambahkan kolom 'Cluster' ke df
+        df['Cluster'] = kmeans.fit_predict(X_scaled)
         st.success("Clustering selesai! Hasil klaster telah ditambahkan ke dataset.")
+        
+        # Tampilkan Tabel Hasil Klaster
+        st.markdown("### Tabel Hasil Klaster")
+        st.dataframe(df.head(10))
+        
+        # Visualisasi Hasil Klaster
+        st.markdown("### Visualisasi Hasil Klaster")
+        fig = px.scatter(df, x='income', y='score', color=df['Cluster'].astype(str), title="K-Means Clustering", labels={'color': 'Cluster'})
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Silhouette Score
+        silhouette_avg = silhouette_score(X_scaled, df['Cluster'])
+        st.markdown("### Silhouette Score")
+        st.markdown(f"""
+            **Silhouette Score**: {silhouette_avg:.2f}
+            - Nilai berkisar antara -1 hingga 1.
+            - Nilai mendekati 1 menunjukkan klaster yang baik.
+        """)
+        
+        # Diagram Silhouette Score
+        fig = px.bar(x=["Silhouette Score"], y=[silhouette_avg], title="Silhouette Score", labels={'x': 'Metrik', 'y': 'Nilai'})
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Penjelasan Tiap Klaster
+        st.markdown("### Penjelasan Tiap Klaster")
+        for cluster in df['Cluster'].unique():
+            cluster_data = df[df['Cluster'] == cluster]
+            st.markdown(f"""
+                #### Klaster {cluster}
+                - **Rata-rata Income**: {cluster_data['income'].mean():.2f}
+                - **Rata-rata Score**: {cluster_data['score'].mean():.2f}
+                - **Jumlah Pelanggan**: {len(cluster_data)}
+            """)
+    else:
+        st.warning("Klik tombol 'Run Clustering' untuk menjalankan proses clustering.")
 
 # ---- Dashboard ----
 elif menu == "📋 Dashboard":
