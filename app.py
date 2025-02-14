@@ -41,6 +41,7 @@ else:
         st.session_state.df = load_data("data_customer.csv")
         st.sidebar.info("Menggunakan data bawaan: data_customer.csv")
     except FileNotFoundError:
+        st.session_state.df = sample_data
         st.sidebar.warning("Menampilkan data sampel. Silakan upload file untuk menggantinya.")
 
 # Validasi kolom
@@ -177,7 +178,7 @@ elif menu == "🔄 Perbandingan Metode":
     st.header("🔄 Perbandingan Metode K-Means dan Random Forest")
     if 'Cluster' in st.session_state.df.columns and 'y_test' in st.session_state and 'y_pred' in st.session_state:
         silhouette_avg = silhouette_score(X_scaled, st.session_state.df['Cluster'])
-        accuracy = accuracy_score(st.session_state.y_test, st.session_state.y_pred) * 100
+        accuracy = accuracy_score(st.session_state.y_test, st_session_state.y_pred) * 100
 
         st.markdown(f"- **Silhouette Score (K-Means)**: {silhouette_avg:.2f}")
         st.markdown(f"- **Akurasi (Random Forest)**: {accuracy:.2f}%")
@@ -187,7 +188,7 @@ elif menu == "🔄 Perbandingan Metode":
         st.plotly_chart(fig, use_container_width=True)
 
         st.markdown("### Classification Report")
-        st.text(classification_report(st_session_state.y_test, st.session_state.y_pred))
+        st.text(classification_report(st.session_state.y_test, st.session_state.y_pred))
     else:
         st.warning("Jalankan K-Means dan Random Forest terlebih dahulu untuk melihat perbandingan.")
 
@@ -210,49 +211,3 @@ elif menu == "➕ Input Manual":
             st.markdown(f"### Prediksi Kategori (Random Forest): **{rf_pred[0]}**")
         else:
             st.warning("Jalankan Random Forest terlebih dahulu untuk melakukan prediksi.")
-
-# ---- Warna UI/UX ----
-st.markdown(
-    """
-    """,
-    unsafe_allow_html=True
-)
-
-# ---- Warna UI/UX ----
-st.markdown(
-    """
-    <style>
-    .stTabs [role="tablist"] { 
-        justify-content: center;
-        margin-top: 50px;
-    }
-    .stTabs [role="tab"] { 
-        font-size: 20px; 
-        font-weight: bold; 
-        padding: 15px 25px; 
-        border-radius: 8px;
-        background-color: #f0f2f6;
-        color: #333;
-    }
-    .stTabs [role="tab"]:hover { 
-        color: white; 
-        background-color: #007bff; 
-    }
-    .stTabs [role="tab"][aria-selected="true"] { 
-        color: white; 
-        background-color: #007bff; 
-    }
-    .stButton button {
-        background-color: #007bff;
-        color: white;
-        font-weight: bold;
-        border-radius: 8px;
-        padding: 10px 20px;
-    }
-    .stButton button:hover {
-        background-color: #0056b3;
-    }
-    </style>
-    """,  # <-- Add the closing triple-quote here
-    unsafe_allow_html=True
-)
