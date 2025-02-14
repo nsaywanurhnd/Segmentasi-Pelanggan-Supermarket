@@ -283,14 +283,14 @@ elif menu == "📋 Dashboard":
         st.warning("Jalankan K-Means Clustering terlebih dahulu untuk melihat hasil segmentasi.")
         
         # Visualisasi Silhouette Score
-        st.markdown("### Silhouette Score")
-        st.markdown("""
-            **Silhouette Score** mengukur seberapa baik data terpisah ke dalam klaster. 
-            Nilai berkisar antara -1 hingga 1, di mana nilai mendekati 1 menunjukkan klaster yang baik.
-        """)
+        # st.markdown("### Silhouette Score")
+        # st.markdown("""
+        #     **Silhouette Score** mengukur seberapa baik data terpisah ke dalam klaster. 
+        #     Nilai berkisar antara -1 hingga 1, di mana nilai mendekati 1 menunjukkan klaster yang baik.
+        # """)
         
-        silhouette_avg = silhouette_score(X_scaled, df['Cluster'])
-        st.metric("Silhouette Score", f"{silhouette_avg:.2f}")
+        # silhouette_avg = silhouette_score(X_scaled, df['Cluster'])
+        # st.metric("Silhouette Score", f"{silhouette_avg:.2f}")
         
         # Diagram Silhouette Score
         fig = px.bar(x=["Silhouette Score"], y=[silhouette_avg], title="Silhouette Score", labels={'x': 'Metrik', 'y': 'Nilai'})
